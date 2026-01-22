@@ -1,53 +1,59 @@
-"""
-Маршруты API для Recommendation System
-Определяет REST эндпоинты для рекомендаций
-"""
-
 import json
 import logging
 from typing import Dict, List, Any
 from datetime import datetime
-from flask_restx import Resource, reqparse
+from flask_restx import Resource, reqparse, fields
 from flask import request, current_app
-from .recommendation_engine import EnhancedRecommendationSystem
-from .models import action_model, recommendation_model
 
 logger = logging.getLogger(__name__)
 
+# Создаем парсер для запросов
+batch_parser = reqparse.RequestParser()
+batch_parser.add_argument('actions', type=list, location='json', required=True)
+
+context_parser = reqparse.RequestParser()
+context_parser.add_argument('context', type=str, location='args')
+
+# Создаем модели полей для Swagger
+action_fields = {
+    'user_id': fields.Integer(required=True, description='Идентификатор пользователя'),
+    'action_type': fields.String(required=True, description='Тип действия'),
+    'action_count': fields.Integer(required=True, description='Количество действий'),
+    'timestamp': fields.String(description='Временная метка')
+}
+
+recommendation_fields = {
+    'category': fields.String(description='Категория'),
+    'priority': fields.Float(description='Приоритет 0-1'),
+    'confidence': fields.Float(description='Уверенность в рекомендации'),
+    'reason': fields.String(description='Обоснование рекомендации'),
+    'suggested_actions': fields.List(fields.String, description='Предлагаемые действия')
+}
+
 
 class ProcessBatchResource(Resource):
-    """Ресурс для пакетной обработки действий"""
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('actions', type=list, location='json', required=True)
-    
-    @current_app.api.expect([action_model])
     def post(self):
         """
         Пакетная обработка действий от analytics collector
-        
-        Returns:
-            Dict: Результаты обработки
         """
         try:
-            actions = request.json
+            data = batch_parser.parse_args()
+            actions = data['actions']
             
             if not isinstance(actions, list):
                 error_msg = 'Expected a list of actions'
                 logger.error(error_msg)
                 return {'error': error_msg}, 400
             
-            # Получаем движок рекомендаций из контекста приложения
-            rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
-            if not rec_system:
-                error_msg = 'Recommendation system not initialized'
-                logger.error(error_msg)
-                return {'error': error_msg}, 500
-            
-            # Обрабатываем действия
-            results = rec_system.process_batch_actions(actions)
+            # Используем контекст приложения
+            with current_app.app_context():
+                rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
+                if not rec_system:
+                    error_msg = 'Recommendation system not initialized'
+                    logger.error(error_msg)
+                    return {'error': error_msg}, 500
+                
+                results = rec_system.process_batch_actions(actions)
             
             # Форматируем ответ
             response = {}
@@ -67,26 +73,12 @@ class ProcessBatchResource(Resource):
 
 
 class EnhancedRecommendationsResource(Resource):
-    """Ресурс для получения улучшенных рекомендаций"""
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('context', type=str, location='args')
-    
     def get(self, user_id):
         """
         Получение рекомендаций с контекстом
-        
-        Args:
-            user_id (int): Идентификатор пользователя
-            
-        Returns:
-            Dict: Рекомендации для пользователя
         """
         try:
-            # Парсим аргументы запроса
-            args = self.parser.parse_args()
+            args = context_parser.parse_args()
             context_str = args.get('context')
             
             # Парсим контекст если он есть
@@ -103,15 +95,15 @@ class EnhancedRecommendationsResource(Resource):
                     logger.error(error_msg)
                     return {'error': error_msg}, 400
             
-            # Получаем движок рекомендаций
-            rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
-            if not rec_system:
-                error_msg = 'Recommendation system not initialized'
-                logger.error(error_msg)
-                return {'error': error_msg}, 500
-            
-            # Получаем рекомендации
-            recommendations = rec_system.get_enhanced_recommendations(user_id, context)
+            # Используем контекст приложения
+            with current_app.app_context():
+                rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
+                if not rec_system:
+                    error_msg = 'Recommendation system not initialized'
+                    logger.error(error_msg)
+                    return {'error': error_msg}, 500
+                
+                recommendations = rec_system.get_enhanced_recommendations(user_id, context)
             
             response = {
                 'user_id': user_id,
@@ -129,29 +121,22 @@ class EnhancedRecommendationsResource(Resource):
 
 
 class UserProfileResource(Resource):
-    """Ресурс для работы с профилем пользователя"""
-    
     def get(self, user_id):
         """
         Получение профиля пользователя
-        
-        Args:
-            user_id (int): Идентификатор пользователя
-            
-        Returns:
-            Dict: Профиль пользователя
         """
         try:
-            rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
-            if not rec_system:
-                return {'message': 'Recommendation system not initialized'}, 500
-            
-            if user_id in rec_system.user_profiles:
-                return {
-                    'user_id': user_id,
-                    'profile': rec_system.user_profiles[user_id],
-                    'last_updated': datetime.now().isoformat()
-                }
+            with current_app.app_context():
+                rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
+                if not rec_system:
+                    return {'message': 'Recommendation system not initialized'}, 500
+                
+                if user_id in rec_system.user_profiles:
+                    return {
+                        'user_id': user_id,
+                        'profile': rec_system.user_profiles[user_id],
+                        'last_updated': datetime.now().isoformat()
+                    }
             
             return {'message': 'Profile not found'}, 404
             
@@ -162,19 +147,14 @@ class UserProfileResource(Resource):
     def delete(self, user_id):
         """
         Удаление профиля пользователя
-        
-        Args:
-            user_id (int): Идентификатор пользователя
-            
-        Returns:
-            Dict: Результат удаления
         """
         try:
-            rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
-            if not rec_system:
-                return {'message': 'Recommendation system not initialized'}, 500
-            
-            success = rec_system.clear_user_profile(user_id)
+            with current_app.app_context():
+                rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
+                if not rec_system:
+                    return {'message': 'Recommendation system not initialized'}, 500
+                
+                success = rec_system.clear_user_profile(user_id)
             
             if success:
                 return {'message': f'Profile for user {user_id} cleared successfully'}
@@ -187,21 +167,17 @@ class UserProfileResource(Resource):
 
 
 class RedisHealthResource(Resource):
-    """Ресурс для проверки здоровья Redis"""
-    
     def get(self):
         """
         Проверка подключения к Redis
-        
-        Returns:
-            Dict: Статус Redis соединения
         """
         try:
-            redis_manager = current_app.config.get('REDIS_MANAGER')
-            if not redis_manager:
-                return {'redis': 'not_initialized'}, 500
-            
-            health_status = redis_manager.health_check()
+            with current_app.app_context():
+                redis_manager = current_app.config.get('REDIS_MANAGER')
+                if not redis_manager:
+                    return {'redis': 'not_initialized'}, 500
+                
+                health_status = redis_manager.health_check()
             
             if health_status['status'] == 'connected':
                 return {'redis': 'connected'}
@@ -211,35 +187,31 @@ class RedisHealthResource(Resource):
                 return {'redis': 'error', 'details': health_status.get('error')}, 500
                 
         except Exception as e:
-            logger.error(f"Redis health check failed: {str(e)}", exc_info=True)
+            logger.error(f"Redis health check failed: {str(e)}")
             return {'redis': 'error', 'error': str(e)}, 500
 
 
 class SystemHealthResource(Resource):
-    """Ресурс для проверки общего здоровья системы"""
-    
     def get(self):
         """
         Проверка общего здоровья системы
-        
-        Returns:
-            Dict: Статус системы
         """
         try:
-            redis_manager = current_app.config.get('REDIS_MANAGER')
-            rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
-            
-            status = {
-                'status': 'healthy',
-                'timestamp': datetime.now().isoformat(),
-                'redis': 'unknown',
-                'recommendation_system': 'initialized' if rec_system else 'not_initialized',
-                'users_in_memory': len(rec_system.user_profiles) if rec_system else 0
-            }
-            
-            if redis_manager:
-                redis_health = redis_manager.health_check()
-                status['redis'] = redis_health['status']
+            with current_app.app_context():
+                redis_manager = current_app.config.get('REDIS_MANAGER')
+                rec_system = current_app.config.get('RECOMMENDATION_SYSTEM')
+                
+                status = {
+                    'status': 'healthy',
+                    'timestamp': datetime.now().isoformat(),
+                    'redis': 'unknown',
+                    'recommendation_system': 'initialized' if rec_system else 'not_initialized',
+                    'users_in_memory': len(rec_system.user_profiles) if rec_system else 0
+                }
+                
+                if redis_manager:
+                    redis_health = redis_manager.health_check()
+                    status['redis'] = redis_health['status']
             
             logger.debug("System health check completed")
             return status
