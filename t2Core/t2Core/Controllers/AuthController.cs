@@ -17,22 +17,38 @@ namespace t2Core.Controllers
 
         // POST: "Вход" — создать пользователя если нет, вернуть userId или подтверждение
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] UserCreateDTO request)
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] UserCreateDTO dto, CancellationToken ct = default)
         {
-            var userId = request.Id;
-            if (string.IsNullOrEmpty(userId)) return BadRequest("UserId required");
+            if (dto == null)
+                return BadRequest("UserId is required");
 
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null)
+
+            try
             {
-                user = new User { UserId = userId };
-                _db.Users.Add(user);
-                _db.Balances.Add(new Balance { UserId = userId, Amount = 0 });
-                await _db.SaveChangesAsync();
-                return Ok($"User created: {userId}");
-            }
+                var user = await _db.Users.FindAsync(new object[] { dto.Id }, cancellationToken: ct);
 
-            return Ok($"User exists: {userId}");
+                bool isNew = user == null;
+
+                if (isNew)
+                {
+                    user = new User { UserId = dto.Id };
+                    _db.Users.Add(user);
+                    _db.Balances.Add(new Balance { UserId = dto.Id, Amount = 0m });
+                    await _db.SaveChangesAsync(ct);
+                }
+
+                return Ok(new LoginResponseDTO
+                {
+                    UserId = dto.Id,
+                    isNewUser = isNew,
+                    Message = isNew ? "User created" : "User already exists"
+                });
+            }
+            catch (Exception)
+            {
+                // _logger.LogError(ex, "Login failed for {UserId}", dto.UserId);
+                return StatusCode(500);
+            }
         }
     }
 }

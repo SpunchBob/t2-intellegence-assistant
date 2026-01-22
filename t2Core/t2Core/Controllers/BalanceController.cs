@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using t2Core.DTOs;
-using t2Core.Models;
+using t2Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace t2Core.Controllers
@@ -16,38 +16,35 @@ namespace t2Core.Controllers
             _db = db;
         }
 
-        
         // GET: Получить баланс по userId
         [HttpGet("{userId}")]
-        public async Task<ActionResult<BalanceDTO>> GetBalance(string userId)
+        public async Task<ActionResult<BalanceDTO>> GetBalance(int userId)
         {
-            await EnsureUserExists(userId);
+            await UserExistence.EnsureUserExistsAsync(userId, _db);
+
             var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
+
             return Ok(new BalanceDTO { Amount = balance?.Amount ?? 0 });
         }
 
         // PUT: Обновить баланс (для фронтенда, но осторожно — в реале обновляй через действия)
         [HttpPut("{userId}")]
-        public async Task<ActionResult> UpdateBalance(string userId, [FromBody] BalanceDTO request)
+        public async Task<ActionResult> UpdateBalance(int userId, [FromBody] BalanceDTO request)
         {
-            await EnsureUserExists(userId);
-            var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
-            if (balance == null) return NotFound("Balance not found");
-
-            balance.Amount = request.Amount;
-            await _db.SaveChangesAsync();
-            return Ok("Balance updated");
-        }
-
-        private async Task EnsureUserExists(string userId)
-        {
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                user = new User { UserId = userId };
-                _db.Users.Add(user);
-                _db.Balances.Add(new Balance { UserId = userId, Amount = 0 });
+                await UserExistence.EnsureUserExistsAsync(userId, _db);
+
+                var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
+                if (balance == null) return NotFound("Balance not found");
+
+                balance.Amount = request.Amount;
                 await _db.SaveChangesAsync();
+                return Ok("Balance updated");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace t2Core.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreat : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,6 +35,7 @@ namespace t2Core.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    Category = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -45,7 +47,8 @@ namespace t2Core.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 },
                 constraints: table =>
                 {
@@ -58,7 +61,7 @@ namespace t2Core.Migrations
                 {
                     BalanceId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -73,24 +76,46 @@ namespace t2Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Purchase",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ProductId = table.Column<int>(type: "integer", nullable: false),
+                    PurchasePrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    PurchasedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Purchase", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Purchase_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Purchase_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserTasks",
                 columns: table => new
                 {
                     UserTaskId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     TaskId = table.Column<int>(type: "integer", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
-                    PaidTaskId = table.Column<int>(type: "integer", nullable: true)
+                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserTasks", x => x.UserTaskId);
-                    table.ForeignKey(
-                        name: "FK_UserTasks_PaidTasks_PaidTaskId",
-                        column: x => x.PaidTaskId,
-                        principalTable: "PaidTasks",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_UserTasks_PaidTasks_TaskId",
                         column: x => x.TaskId,
@@ -112,9 +137,14 @@ namespace t2Core.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserTasks_PaidTaskId",
-                table: "UserTasks",
-                column: "PaidTaskId");
+                name: "IX_Purchase_ProductId",
+                table: "Purchase",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchase_UserId",
+                table: "Purchase",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserTasks_TaskId",
@@ -122,9 +152,10 @@ namespace t2Core.Migrations
                 column: "TaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserTasks_UserId",
+                name: "IX_UserTasks_UserId_TaskId",
                 table: "UserTasks",
-                column: "UserId");
+                columns: new[] { "UserId", "TaskId" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -134,10 +165,13 @@ namespace t2Core.Migrations
                 name: "Balances");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Purchase");
 
             migrationBuilder.DropTable(
                 name: "UserTasks");
+
+            migrationBuilder.DropTable(
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "PaidTasks");

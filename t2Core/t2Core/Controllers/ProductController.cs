@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Net.Http;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using t2Core.DTOs;
+using t2Core.Services;
 using t2Core.Models;
 
 namespace t2Core.Controllers
@@ -24,17 +23,17 @@ namespace t2Core.Controllers
 
         // GET: Получить все продукты + лучшую категорию продуктов со скидкой 10%
         [HttpGet("getProducts/{userId}")]
-        public async Task<ActionResult<ProductDTO>> GetProducts(string userId)
+        public async Task<ActionResult<ProductDTO>> GetProducts(int userId)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-                return BadRequest("UserId required");
+            if (userId == null)
+                return BadRequest("UserId is required");
 
-            await EnsureUserExists(userId);  // если нужно создавать пользователя локально
 
-            try
-            {
+            await UserExistence.EnsureUserExistsAsync(userId, _db);  // если нужно создавать пользователя локально
+
+            try {
                 var client = _httpClientFactory.CreateClient();
-                var requestUrl = $"{_bestCategotyURL}?userId={Uri.EscapeDataString(userId)}";  // или POST, если нужно тело
+                var requestUrl = $"{_bestCategotyURL}?userId={userId}";  // или POST, если нужно тело
 
                 var response = await client.GetAsync(requestUrl);
                 response.EnsureSuccessStatusCode();
@@ -90,18 +89,5 @@ namespace t2Core.Controllers
                 return StatusCode(500, "Internal error");
             }
         }   
-
-        private async Task EnsureUserExists(string userId)
-            {
-                // Тот же хелпер, как выше
-                var user = await _db.Users.FindAsync(userId);
-                if (user == null)
-                {
-                    user = new User { UserId = userId };
-                    _db.Users.Add(user);
-                    _db.Balances.Add(new Balance { UserId = userId, Amount = 0 });
-                    await _db.SaveChangesAsync();
-                }
-            }
     }
 }

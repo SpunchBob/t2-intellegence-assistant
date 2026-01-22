@@ -2,6 +2,6 @@
 {
     public class UserCreateDTO
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
     }
 }

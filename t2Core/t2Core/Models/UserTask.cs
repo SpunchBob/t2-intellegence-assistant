@@ -6,7 +6,7 @@ namespace t2Core.Models
     {
         [Key]
         public int UserTaskId { get; set; }
-        public string UserId { get; set; } = null!;
+        public int UserId { get; set; }
         public int TaskId { get; set; }
         public bool IsCompleted { get; set; }
 
