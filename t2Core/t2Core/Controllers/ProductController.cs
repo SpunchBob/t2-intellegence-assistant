@@ -23,16 +23,19 @@ namespace t2Core.Controllers
 
         // GET: Получить все продукты + лучшую категорию продуктов со скидкой 10%
         [HttpGet("getProducts/{userId}")]
-        public async Task<ActionResult<ProductDTO>> GetProducts(int userId)
+        public async Task<ActionResult<ProductsResponseDto>> GetProducts(int userId, CancellationToken ct = default)
         {
-            if (userId == null)
-                return BadRequest("UserId is required");
+            if (userId <= 0)
+                return BadRequest("Invalid user id");
 
-
-            await UserExistence.EnsureUserExistsAsync(userId, _db);  // если нужно создавать пользователя локально
+            var userResult = await UserExistence.EnsureUserExistsAsync(userId, _db);
+            if (!userResult.Success)
+                return StatusCode(500, userResult.ErrorMessage ?? "Failed to initialize user");
 
             try {
                 var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(6);
+
                 var requestUrl = $"{_bestCategotyURL}?userId={userId}";  // или POST, если нужно тело
 
                 var response = await client.GetAsync(requestUrl);
@@ -45,34 +48,34 @@ namespace t2Core.Controllers
                     return StatusCode(502, "Invalid response from external service");
 
                 // Получаем все продукты из своей базы
-                var localProducts = await _db.Products
+                var products = await _db.Products
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 // Формируем DTO с учётом рекомендации от внешнего сервиса
-                var productDtos = localProducts.Select(p => new ProductDTO
+                var dtos = products.Select(p => new ProductDTO
                 {
                     Id = p.ProductId,
                     Name = p.Name,
                     Description = p.Description,
                     Price = p.Price,
-                    Category = "",  // ← пока пусто, т.к. категории нет в модели Product
-                    IsDiscounted = p.Name.Contains(externalData.BestCategorytName, StringComparison.OrdinalIgnoreCase)
-                                   || p.Description.Contains(externalData.BestCategorytName, StringComparison.OrdinalIgnoreCase),
-                    DiscountedPrice = p.Name.Contains(externalData.BestCategorytName, StringComparison.OrdinalIgnoreCase)
-                        ? Math.Round(p.Price * 0.9m, 2)
-                        : p.Price
+                    Category = p.Category ?? "Без категории",
+                    IsDiscounted = p.Category == externalData.BestCategorytName,
+                    DiscountedPrice = p.Category == externalData.BestCategorytName
+                ? Math.Round(p.Price * 0.9m, 2)
+                : p.Price
                 }).ToList();
 
-                // Собираем финальный ответ
-                var result = new ProductsResponseDto
+                return Ok(new ProductsResponseDto
                 {
-                    Products = productDtos,
+                    Products = dtos,
                     BestCategory = externalData.BestCategorytName,
                     Sale = 10
-                };
-
-                return Ok(result);
+                });
+            }
+            catch (HttpRequestException ex) when (ex.InnerException is TimeoutException)
+            {
+                return StatusCode(504, "External service timeout");
             }
             catch (HttpRequestException ex)
             {
@@ -83,7 +86,7 @@ namespace t2Core.Controllers
             {
                 return StatusCode(502, "Invalid format from external service");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Логировать
                 return StatusCode(500, "Internal error");

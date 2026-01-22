@@ -8,8 +8,8 @@ using t2Core.Services;
 namespace t2Core.Controllers
 {
     [ApiController]
-    [Route("api/{controller}")]
-    public class TaskController : Controller
+    [Route("api/[controller]")]
+    public class TaskController : ControllerBase
     {
         private readonly AppDbContext _db;
 
@@ -19,17 +19,22 @@ namespace t2Core.Controllers
         }
 
         [HttpGet("getTasks/{userId}")]
-        public async Task<ActionResult<List<TaskDTO>>> GetIncompleteTasks(int userId)
+        public async Task<ActionResult<List<TaskDTO>>> GetIncompleteTasks(int userId, CancellationToken ct = default)
         {
             try
             {
-                await UserExistence.EnsureUserExistsAsync(userId, _db);
+                if (userId < 1)
+                    return BadRequest("Valid userId is required!");
+
+                var userResult = await UserExistence.EnsureUserExistsAsync(userId, _db);
+                if (!userResult.Success)
+                    return StatusCode(500, userResult.ErrorMessage ?? "Failed to initialize user");
 
                 var tasks = await _db.PaidTasks
                  .GroupJoin(_db.UserTasks.Where(ut => ut.UserId == userId && !ut.IsCompleted),
                      t => t.Id,
                      ut => ut.TaskId,
-                     (t, utGroup) => new { Task = t, UserTask = utGroup.FirstOrDefault() })
+                     (t, utGroup) => new { Task = t, UserTask = utGroup.FirstOrDefault(ct) })
                  .Where(joined => joined.UserTask == null || !joined.UserTask.IsCompleted)
                  .Select(joined => new TaskDTO
                  {
@@ -39,58 +44,71 @@ namespace t2Core.Controllers
                      Reward = joined.Task.Reward,
                      IsCompleted = false
                  })
-                 .ToListAsync();
+                 .ToListAsync(ct);
 
                 return Ok(tasks);
             }
+            catch (InvalidOperationException)
+            {
+                // Ошибка при запросе к БД (например, несколько балансов)
+                return StatusCode(500, "Data inconsistency error");
+            }
+            catch (OperationCanceledException)
+            {
+                // Таймаут или отмена запроса
+                return StatusCode(408, "Request timeout");
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                // Любые другие непредвиденные ошибки
+                return StatusCode(500, $"Internal server error {ex.Message}");
             }
         }
 
         [HttpPost("complete")]
-        public async Task<IActionResult> CompleteTask([FromBody] CompleteTaskDTO dto)
+        public async Task<IActionResult> CompleteTask([FromBody] CompleteTaskDTO dto, CancellationToken ct = default)
         {
-            try
+            if (dto == null || dto.UserId <= 0 || dto.TaskId <= 0)
+                return BadRequest("Invalid user or task id");
+
+            var result = await UserExistence.EnsureUserExistsAsync(dto.UserId, _db);
+            if (!result.Success)
+                return StatusCode(500, result.ErrorMessage ?? "Failed to initialize user");
+
+            var paidTask = await _db.PaidTasks
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == dto.TaskId, ct);
+
+            if (paidTask == null)
+                return NotFound("Task not found");
+
+            var userTask = await _db.UserTasks
+                .FirstOrDefaultAsync(ut => ut.UserId == dto.UserId && ut.TaskId == dto.TaskId, ct);
+
+            if (userTask == null)
             {
-                await UserExistence.EnsureUserExistsAsync(dto.UserId, _db);
-
-                if (dto.TaskId == null)
-                    return NotFound("Task not found");
-
-                var userTask = await _db.UserTasks
-                    .FirstOrDefaultAsync(ut => ut.UserId == dto.UserId && ut.TaskId == dto.TaskId);
-
-
-                var paidTask = await _db.PaidTasks
-                    .FirstOrDefaultAsync(t => t.Id == dto.TaskId);
-
-                if (userTask == null)
+                userTask = new UserTask
                 {
-                    userTask = new UserTask
-                    {
-                        UserId = dto.UserId,
-                        TaskId = dto.TaskId,
-                        IsCompleted = false
-                    };
-
-                    _db.UserTasks.Add(userTask);
-                }
-
-                if (userTask.IsCompleted) return BadRequest("Task already completed");
-
-                userTask.IsCompleted = true;
-                var balance = await _db.Balances.FirstAsync(b => b.UserId == dto.UserId);
-                balance.Amount += paidTask.Reward;
-                await _db.SaveChangesAsync();
-
-                return Ok("Task completed, reward added");
+                    UserId = dto.UserId,
+                    TaskId = dto.TaskId,
+                    IsCompleted = false
+                };
+                _db.UserTasks.Add(userTask);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+
+            if (userTask.IsCompleted)
+                return BadRequest("Task already completed");
+
+            userTask.IsCompleted = true;
+
+            var balance = await _db.Balances
+                .FirstAsync(b => b.UserId == dto.UserId, ct);
+
+            balance.Amount += paidTask.Reward;
+
+            await _db.SaveChangesAsync(ct);
+
+            return Ok();
         }
     }
 }

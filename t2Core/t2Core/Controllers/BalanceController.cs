@@ -18,33 +18,72 @@ namespace t2Core.Controllers
 
         // GET: Получить баланс по userId
         [HttpGet("{userId}")]
-        public async Task<ActionResult<BalanceDTO>> GetBalance(int userId)
+        public async Task<ActionResult<BalanceDTO>> GetBalance(int userId, CancellationToken ct = default)
         {
-            await UserExistence.EnsureUserExistsAsync(userId, _db);
+            try
+            {
+                var result = await UserExistence.EnsureUserExistsAsync(userId, _db);
+                if (!result.Success)
+                    return StatusCode(500, "Failed to initialize user");
 
-            var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
+                var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId, ct);
 
-            return Ok(new BalanceDTO { Amount = balance?.Amount ?? 0 });
+                return Ok(new BalanceDTO { Amount = balance?.Amount ?? 0 });
+            }
+            catch(InvalidOperationException)
+            {
+                // Ошибка при запросе к БД (например, несколько балансов)
+                return StatusCode(500, "Data inconsistency error");
+            }
+            catch (OperationCanceledException)
+            {
+                // Таймаут или отмена запроса
+                return StatusCode(408, "Request timeout");
+            }
+            catch (Exception)
+            {
+                // Любые другие непредвиденные ошибки
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // PUT: Обновить баланс (для фронтенда, но осторожно — в реале обновляй через действия)
         [HttpPut("{userId}")]
-        public async Task<ActionResult> UpdateBalance(int userId, [FromBody] BalanceDTO request)
+        public async Task<ActionResult> UpdateBalance(int userId, [FromBody] BalanceDTO request, CancellationToken ct = default)
         {
             try
             {
-                await UserExistence.EnsureUserExistsAsync(userId, _db);
+                if (request == null)
+                    return BadRequest("Balance is required!");
+
+                var result = await UserExistence.EnsureUserExistsAsync(userId, _db);
+                if (!result.Success)
+                    return StatusCode(500, "Failed to initialize user");
+
+                if (request.Amount < 0)
+                    return BadRequest($"Balance should be 0 or more");
 
                 var balance = await _db.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
                 if (balance == null) return NotFound("Balance not found");
 
                 balance.Amount = request.Amount;
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(ct);
                 return Ok("Balance updated");
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, ex.Message);
+                // Ошибка при запросе к БД (например, несколько балансов)
+                return StatusCode(500, "Data inconsistency error");
+            }
+            catch (OperationCanceledException)
+            {
+                // Таймаут или отмена запроса
+                return StatusCode(408, "Request timeout");
+            }
+            catch (Exception)
+            {
+                // Любые другие непредвиденные ошибки
+                return StatusCode(500, "Internal server error");
             }
         }
     }

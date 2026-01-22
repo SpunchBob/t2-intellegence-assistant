@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using t2Core.DTOs;
+using Microsoft.EntityFrameworkCore; 
 using t2Core.Models;
 
 namespace t2Core.Controllers
@@ -19,9 +20,8 @@ namespace t2Core.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] UserCreateDTO dto, CancellationToken ct = default)
         {
-            if (dto == null)
-                return BadRequest("UserId is required");
-
+            if (dto == null || dto.Id <= 0)
+                return BadRequest("Valid positive UserId required");
 
             try
             {
@@ -44,9 +44,12 @@ namespace t2Core.Controllers
                     Message = isNew ? "User created" : "User already exists"
                 });
             }
-            catch (Exception)
+            catch (DbUpdateException)   // уникальный ключ, конфликт
             {
-                // _logger.LogError(ex, "Login failed for {UserId}", dto.UserId);
+                return Conflict("User creation conflict");
+            }
+            catch (Exception)           
+            {
                 return StatusCode(500);
             }
         }
