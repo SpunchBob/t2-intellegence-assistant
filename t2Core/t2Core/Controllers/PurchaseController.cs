@@ -26,10 +26,6 @@ namespace t2Core.Controllers
                 if (dto == null)
                     return BadRequest("Data is required");
 
-                var userResult = await UserExistence.EnsureUserExistsAsync(dto.UserId, _db);
-                if (!userResult.Success)
-                    return StatusCode(500, userResult.ErrorMessage ?? "Failed to initialize user");
-
                 // Validation
                 if (dto.UserId <= 0)
                     return BadRequest("Invalid UserId");
@@ -42,7 +38,7 @@ namespace t2Core.Controllers
 
                 var user = await UserExistence.EnsureUserExistsAsync(dto.UserId, _db);
                 if (!user.Success)
-                    return StatusCode(500, userResult.ErrorMessage ?? "Failed to initialize user");
+                    return StatusCode(500, user.ErrorMessage ?? "Failed to initialize user");
 
                 // Находим продукт (чтобы убедиться, что он существует)
                 var product = await _db.Products

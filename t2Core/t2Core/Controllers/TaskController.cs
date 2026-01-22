@@ -34,7 +34,7 @@ namespace t2Core.Controllers
                  .GroupJoin(_db.UserTasks.Where(ut => ut.UserId == userId && !ut.IsCompleted),
                      t => t.Id,
                      ut => ut.TaskId,
-                     (t, utGroup) => new { Task = t, UserTask = utGroup.FirstOrDefault(ct) })
+                     (t, utGroup) => new { Task = t, UserTask = utGroup.FirstOrDefault() })
                  .Where(joined => joined.UserTask == null || !joined.UserTask.IsCompleted)
                  .Select(joined => new TaskDTO
                  {
