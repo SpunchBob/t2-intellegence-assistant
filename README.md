@@ -1,554 +1,698 @@
-📱 Analytics Collector API - Руководство для Frontend разработчика
-🎯 О сервисе
+T2 Intelligence Assistant API Документация
+📋 Оглавление
 
-Analytics Collector API - это сервис для сбора аналитики пользовательских действий с мобильного приложения. Сервис принимает данные через WebSocket, агрегирует их и отправляет в систему рекомендаций.
-🚀 Быстрый старт
-1. Запуск сервиса
+    Общее описание
+
+    Быстрый старт
+
+    API Endpoints
+
+        Analytics Collector
+
+        Recommendation System
+
+    Примеры использования
+
+        Frontend Developer
+
+        Backend Developer
+
+    WebSocket API
+
+    Модели данных
+
+    Обработка ошибок
+
+    Тестирование API
+
+🚀 Общее описание
+
+T2 Intelligence Assistant состоит из двух микросервисов:
+
+    Analytics Collector (порт 8000) - сбор действий пользователей
+
+    Recommendation System (порт 5000) - генерация рекомендаций
+
+Схема работы
+text
+
+Frontend → Analytics Collector (WebSocket) → Recommendation System → Backend
+      ↑                                         ↓
+      └────── Получение рекомендаций ←─────────┘
+
+🎯 Быстрый старт
+Локальный запуск
 bash
 
-# Установите зависимости
-pip install fastapi uvicorn websockets httpx
+# Клонирование проекта
+git clone <repository-url>
+cd t2-intelligence-assistant
 
-# Запустите сервис
-python app.py
+# Запуск сервисов
+docker-compose up --build
 
-# Сервис будет доступен по адресу:
-# API: http://localhost:8000
-# WebSocket: ws://localhost:8000/ws/analytics/{client_id}
-# Документация: http://localhost:8000/docs
+Сервисы будут доступны по адресам:
 
-2. Docker (альтернативный способ)
-bash
+    Analytics Collector: http://localhost:8000
 
-# Запустите Redis и Analytics Collector
-docker-compose up -d
+    Recommendation System: http://localhost:5000
 
-# Проверьте статус
-docker-compose ps
+Swagger документация
 
-📡 WebSocket API
-Подключение к WebSocket
-javascript
+    Analytics Collector: http://localhost:8000/docs
 
-const clientId = 'user_123_session_456'; // Уникальный ID клиента/сессии
-const ws = new WebSocket(`ws://localhost:8000/ws/analytics/${clientId}`);
+    Recommendation System: http://localhost:5000/docs
 
-Формат отправляемых данных
+📡 API Endpoints
+Analytics Collector
+1. WebSocket соединение
+text
+
+ws://localhost:8000/ws/analytics/{client_id}
+
+Назначение: Отправка действий пользователя в реальном времени
+
+Параметры пути:
+
+    client_id - уникальный идентификатор клиента (строка)
+
+2. Получение статистики пользователя
+text
+
+GET /stats/{user_id}
+
+Назначение: Получение статистики действий пользователя
+
+Параметры пути:
+
+    user_id - идентификатор пользователя (строка)
+
+Пример ответа:
 json
 
 {
-  "user_id": "user_123",        // ID пользователя (строка)
-  "action": "purchase_view"     // Действие пользователя (строка)
-}
-
-Примеры действий
-javascript
-
-// Примеры типов действий:
-const actions = {
-  // Просмотры
-  PURCHASE_VIEW: "purchase_view",
-  BOOK_SEARCH: "book_search", 
-  VIDEO_WATCH: "video_watch",
-  ARTICLE_READ: "article_read",
-  PROFILE_VIEW: "profile_view",
-  
-  // Взаимодействия
-  BUTTON_CLICK: "button_click",
-  TAB_SWITCH: "tab_switch",
-  SEARCH: "search_action",
-  
-  // Покупки
-  ADD_TO_CART: "add_to_cart",
-  BUY_NOW: "buy_now"
-};
-
-🎨 Пример реализации на JavaScript
-Простой трекер для веб-приложения
-javascript
-
-class AnalyticsTracker {
-  constructor() {
-    this.ws = null;
-    this.userId = this.getOrCreateUserId();
-    this.sessionId = this.generateSessionId();
-    this.baseUrl = 'ws://localhost:8000';
-    this.isConnected = false;
-    this.pendingActions = [];
-    
-    this.init();
-  }
-  
-  // Генерация уникальных ID
-  generateSessionId() {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-  
-  getOrCreateUserId() {
-    // Получаем userId из localStorage или создаем новый
-    let userId = localStorage.getItem('analytics_user_id');
-    if (!userId) {
-      userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('analytics_user_id', userId);
-    }
-    return userId;
-  }
-  
-  // Инициализация WebSocket
-  init() {
-    this.connectWebSocket();
-    
-    // Автоматическое переподключение
-    setInterval(() => {
-      if (!this.isConnected) {
-        this.connectWebSocket();
-      }
-    }, 5000);
-    
-    // Автоматическая отправка накопленных действий
-    setInterval(() => {
-      if (this.pendingActions.length > 0 && this.isConnected) {
-        this.sendBatch();
-      }
-    }, 10000);
-  }
-  
-  connectWebSocket() {
-    const wsUrl = `${this.baseUrl}/ws/analytics/${this.sessionId}`;
-    this.ws = new WebSocket(wsUrl);
-    
-    this.ws.onopen = () => {
-      console.log('✅ Подключено к Analytics Collector');
-      this.isConnected = true;
-      
-      // Отправляем накопленные действия
-      if (this.pendingActions.length > 0) {
-        this.sendBatch();
-      }
-    };
-    
-    this.ws.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      console.log('📨 Ответ от сервера:', response);
-    };
-    
-    this.ws.onerror = (error) => {
-      console.error('❌ WebSocket ошибка:', error);
-      this.isConnected = false;
-    };
-    
-    this.ws.onclose = () => {
-      console.log('🔌 WebSocket соединение закрыто');
-      this.isConnected = false;
-    };
-  }
-  
-  // Трекинг действия
-  track(action, metadata = {}) {
-    const actionData = {
-      user_id: this.userId,
-      action: action,
-      ...metadata
-    };
-    
-    this.pendingActions.push(actionData);
-    
-    // Если накопилось много действий или действие важное - отправляем сразу
-    if (this.pendingActions.length >= 5 || action.includes('purchase')) {
-      this.sendBatch();
-    }
-    
-    return actionData;
-  }
-  
-  // Отправка батча действий
-  sendBatch() {
-    if (!this.isConnected || this.pendingActions.length === 0) {
-      return;
-    }
-    
-    const batch = [...this.pendingActions];
-    this.pendingActions = [];
-    
-    this.ws.send(JSON.stringify(batch));
-    console.log(`📤 Отправлен батч из ${batch.length} действий`);
-  }
-  
-  // Ручная отправка
-  sendNow() {
-    this.sendBatch();
-  }
-  
-  // Получение статистики (опционально)
-  async getStats() {
-    try {
-      const response = await fetch(`http://localhost:8000/stats/${this.userId}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Ошибка получения статистики:', error);
-      return null;
-    }
-  }
-}
-
-// Создание экземпляра трекера
-const tracker = new AnalyticsTracker();
-
-📱 Пример для React Native
-javascript
-
-// analyticsTracker.js
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-class MobileAnalyticsTracker {
-  constructor() {
-    this.ws = null;
-    this.userId = null;
-    this.sessionId = null;
-    this.baseUrl = Platform.OS === 'android' 
-      ? 'ws://10.0.2.2:8000'  // Android эмулятор
-      : 'ws://localhost:8000'; // iOS симулятор
-    this.pendingActions = [];
-    
-    this.init();
-  }
-  
-  async init() {
-    await this.getOrCreateUserId();
-    this.sessionId = this.generateSessionId();
-    this.connectWebSocket();
-  }
-  
-  generateSessionId() {
-    return `mobile_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-  
-  async getOrCreateUserId() {
-    try {
-      let userId = await AsyncStorage.getItem('analytics_user_id');
-      if (!userId) {
-        userId = `mobile_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        await AsyncStorage.setItem('analytics_user_id', userId);
-      }
-      this.userId = userId;
-    } catch (error) {
-      console.error('Ошибка получения userId:', error);
-      this.userId = `temp_user_${Date.now()}`;
-    }
-  }
-  
-  connectWebSocket() {
-    const wsUrl = `${this.baseUrl}/ws/analytics/${this.sessionId}`;
-    this.ws = new WebSocket(wsUrl);
-    
-    this.ws.onopen = () => {
-      console.log('WebSocket подключен');
-      this.sendPendingActions();
-    };
-    
-    this.ws.onmessage = (event) => {
-      console.log('Получен ответ:', JSON.parse(event.data));
-    };
-    
-    this.ws.onerror = (error) => {
-      console.error('WebSocket ошибка:', error);
-    };
-    
-    this.ws.onclose = () => {
-      console.log('WebSocket соединение закрыто');
-      setTimeout(() => this.connectWebSocket(), 5000);
-    };
-  }
-  
-  // Трекинг действия
-  track(action, metadata = {}) {
-    const actionData = {
-      user_id: this.userId,
-      action: action,
-      timestamp: new Date().toISOString(),
-      platform: Platform.OS,
-      ...metadata
-    };
-    
-    this.pendingActions.push(actionData);
-    
-    // Если WebSocket подключен - отправляем сразу
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.sendAction(actionData);
-    }
-    
-    return actionData;
-  }
-  
-  sendAction(action) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(action));
-    }
-  }
-  
-  sendPendingActions() {
-    if (this.pendingActions.length > 0 && this.ws.readyState === WebSocket.OPEN) {
-      this.pendingActions.forEach(action => this.sendAction(action));
-      this.pendingActions = [];
-    }
-  }
-  
-  // Примеры типовых событий
-  trackScreenView(screenName) {
-    this.track('screen_view', { screen: screenName });
-  }
-  
-  trackButtonClick(buttonName) {
-    this.track('button_click', { button: buttonName });
-  }
-  
-  trackPurchase(productId, amount) {
-    this.track('purchase_complete', { 
-      product_id: productId, 
-      amount: amount 
-    });
-  }
-}
-
-export default new MobileAnalyticsTracker();
-
-📊 Использование в React Native компонентах
-javascript
-
-// App.js
-import React, { useEffect } from 'react';
-import { Button, View, Text } from 'react-native';
-import analytics from './analyticsTracker';
-
-function App() {
-  useEffect(() => {
-    // Трекинг открытия приложения
-    analytics.track('app_open', { 
-      version: '1.0.0',
-      timestamp: new Date().toISOString()
-    });
-  }, []);
-
-  return (
-    <View>
-      <Button
-        title="Посмотреть товары"
-        onPress={() => {
-          analytics.track('purchase_view');
-          // Навигация к товарам
-        }}
-      />
-      
-      <Button
-        title="Поиск книг"
-        onPress={() => {
-          analytics.track('book_search');
-          // Открытие поиска
-        }}
-      />
-      
-      <Button
-        title="Купить"
-        onPress={() => {
-          analytics.track('buy_now', { 
-            product_id: '123', 
-            price: 99.99 
-          });
-          // Логика покупки
-        }}
-      />
-    </View>
-  );
-}
-
-🔧 Настройки подключения
-Для разработки:
-
-    Локально: ws://localhost:8000/ws/analytics/{client_id}
-
-    В сети: ws://{ваш-ip}:8000/ws/analytics/{client_id}
-
-Для продакшена:
-javascript
-
-// config.js
-export const ANALYTICS_CONFIG = {
-  development: {
-    wsUrl: 'ws://localhost:8000/ws/analytics'
+  "user_id": "123",
+  "total_actions": 45,
+  "action_types": {
+    "chatting_assistant": 20,
+    "search_books": 15,
+    "watch_videos": 10
   },
-  production: {
-    wsUrl: 'wss://your-domain.com/ws/analytics'  // HTTPS для продакшена
-  }
-};
+  "last_action": "2024-01-22T10:30:45"
+}
 
-📈 Примеры отправляемых данных
-Базовое действие:
+3. Проверка здоровья сервиса
+text
+
+GET /health
+
+Ответ:
 json
 
 {
-  "user_id": "user_abc123",
-  "action": "purchase_view"
+  "status": "healthy",
+  "timestamp": "2024-01-22T10:30:45",
+  "connections": 5,
+  "redis": "connected",
+  "service": "analytics-collector"
 }
 
-Действие с дополнительными данными:
+Recommendation System
+1. Получение рекомендаций
+text
+
+GET /recommend/enhanced/{user_id}
+
+Назначение: Получение персонализированных рекомендаций
+
+Параметры пути:
+
+    user_id - идентификатор пользователя (число)
+
+Query параметры:
+
+    context (опционально) - JSON строка с контекстом
+
+Пример запроса:
+text
+
+GET /recommend/enhanced/123?context={"time_of_day":"morning","user_preferences":{"preferred_categories":["education"]}}
+
+Пример ответа:
 json
 
 {
-  "user_id": "user_abc123",
-  "action": "product_click",
-  "product_id": "prod_789",
-  "category": "electronics",
-  "price": 299.99
+  "user_id": 123,
+  "timestamp": "2024-01-22T10:30:45",
+  "context_used": true,
+  "recommendations": [
+    {
+      "category": "education",
+      "priority": 0.85,
+      "confidence": 0.9,
+      "reason": "Ваша активность в обучении высока (85% активности)",
+      "suggested_actions": ["Новые курсы", "Статьи по теме", "Вебинары"]
+    },
+    {
+      "category": "chat",
+      "priority": 0.15,
+      "confidence": 0.7,
+      "reason": "Вы активно общаетесь с ассистентом (15% активности)",
+      "suggested_actions": ["Задать новый вопрос", "Продолжить диалог"]
+    }
+  ]
 }
 
-Батч действий:
+2. Пакетная обработка действий
+text
+
+POST /process/batch
+
+Назначение: Пакетная обработка действий от analytics collector (используется внутренне)
+
+Тело запроса:
 json
 
 [
   {
-    "user_id": "user_abc123",
-    "action": "screen_view",
-    "screen": "home"
+    "user_id": 123,
+    "action_type": "chatting_assistant",
+    "action_count": 5,
+    "timestamp": "2024-01-22T10:30:45"
   },
   {
-    "user_id": "user_abc123", 
-    "action": "button_click",
-    "button": "search"
-  },
-  {
-    "user_id": "user_abc123",
-    "action": "search",
-    "query": "новые книги"
+    "user_id": 123,
+    "action_type": "search_books",
+    "action_count": 3,
+    "timestamp": "2024-01-22T10:31:00"
   }
 ]
 
-⚠️ Обработка ошибок
-Проверка подключения:
+3. Получение профиля пользователя
+text
+
+GET /profile/{user_id}
+
+Ответ:
+json
+
+{
+  "user_id": 123,
+  "profile": {
+    "chat": 45.2,
+    "education": 32.1,
+    "software": 12.5
+  },
+  "last_updated": "2024-01-22T10:30:45"
+}
+
+4. Удаление профиля пользователя
+text
+
+DELETE /profile/{user_id}
+
+5. Проверка здоровья
+text
+
+GET /health
+
+text
+
+GET /health/redis
+
+👨‍💻 Примеры использования
+Frontend Developer
+1. Подключение WebSocket для отправки действий
 javascript
 
-// Проверка статуса сервиса
-async function checkServiceStatus() {
+// Создание WebSocket соединения
+const clientId = `user_${Date.now()}`;
+const ws = new WebSocket(`ws://localhost:8000/ws/analytics/${clientId}`);
+
+// Обработчик открытия соединения
+ws.onopen = () => {
+  console.log('WebSocket соединение установлено');
+};
+
+// Отправка действия пользователя
+function sendUserAction(userId, actionType) {
+  const action = {
+    user_id: userId,
+    action: actionType
+  };
+  
+  ws.send(JSON.stringify(action));
+}
+
+// Пример использования
+sendUserAction('user123', 'chatting_assistant');
+sendUserAction('user123', 'search_books');
+
+// Обработка ответов от сервера
+ws.onmessage = (event) => {
+  const response = JSON.parse(event.data);
+  console.log('Ответ от сервера:', response);
+};
+
+// Обработка ошибок
+ws.onerror = (error) => {
+  console.error('WebSocket ошибка:', error);
+};
+
+2. Получение рекомендаций для пользователя
+javascript
+
+async function getRecommendations(userId, context = {}) {
   try {
-    const response = await fetch('http://localhost:8000/health');
+    const contextStr = JSON.stringify(context);
+    const url = `http://localhost:5000/recommend/enhanced/${userId}?context=${encodeURIComponent(contextStr)}`;
+    
+    const response = await fetch(url);
     const data = await response.json();
-    console.log('Статус сервиса:', data);
-    return data.status === 'healthy';
+    
+    if (response.ok) {
+      return data.recommendations;
+    } else {
+      console.error('Ошибка получения рекомендаций:', data);
+      return [];
+    }
   } catch (error) {
-    console.error('Сервис недоступен:', error);
-    return false;
+    console.error('Ошибка запроса:', error);
+    return [];
   }
 }
 
-// Локальное хранение при отсутствии соединения
-function saveActionLocally(action) {
-  const pendingActions = JSON.parse(localStorage.getItem('pending_actions') || '[]');
-  pendingActions.push({
-    ...action,
-    timestamp: new Date().toISOString()
-  });
-  localStorage.setItem('pending_actions', JSON.stringify(pendingActions));
-  
-  // Пытаемся отправить при восстановлении соединения
-  window.addEventListener('online', () => {
-    sendPendingActions();
-  });
+// Пример использования
+const recommendations = await getRecommendations(123, {
+  time_of_day: 'morning',
+  user_preferences: {
+    preferred_categories: ['education', 'software']
+  }
+});
+
+// Отображение рекомендаций
+recommendations.forEach(rec => {
+  console.log(`${rec.category}: ${rec.reason}`);
+  console.log('Предлагаемые действия:', rec.suggested_actions);
+});
+
+Backend Developer
+1. Интеграция с Analytics Collector
+python
+
+import asyncio
+import websockets
+import json
+
+async def track_user_action(user_id: str, action: str):
+    """
+    Отправка действия пользователя через WebSocket
+    """
+    uri = f"ws://localhost:8000/ws/analytics/{user_id}"
+    
+    try:
+        async with websockets.connect(uri) as websocket:
+            action_data = {
+                "user_id": user_id,
+                "action": action
+            }
+            
+            await websocket.send(json.dumps(action_data))
+            
+            # Получение подтверждения
+            response = await websocket.recv()
+            response_data = json.loads(response)
+            
+            if response_data["status"] == "success":
+                print(f"Дейтие успешно отправлено: {action}")
+            else:
+                print(f"Ошибка: {response_data['message']}")
+                
+    except Exception as e:
+        print(f"Ошибка подключения к WebSocket: {e}")
+
+# Пример использования
+asyncio.run(track_user_action("user123", "use_function_x"))
+
+2. Получение статистики пользователя
+python
+
+import requests
+
+def get_user_stats(user_id: str):
+    """
+    Получение статистики действий пользователя
+    """
+    url = f"http://localhost:8000/stats/{user_id}"
+    
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Ошибка: {response.status_code}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка запроса: {e}")
+        return None
+
+# Пример использования
+stats = get_user_stats("user123")
+if stats:
+    print(f"Всего действий: {stats['total_actions']}")
+    print(f"Типы действий: {stats['action_types']}")
+
+3. Интеграция с Recommendation System
+python
+
+import requests
+import json
+
+class RecommendationClient:
+    def __init__(self, base_url="http://localhost:5000"):
+        self.base_url = base_url
+    
+    def get_recommendations(self, user_id: int, context: dict = None):
+        """
+        Получение рекомендаций для пользователя
+        """
+        url = f"{self.base_url}/recommend/enhanced/{user_id}"
+        
+        params = {}
+        if context:
+            params['context'] = json.dumps(context)
+        
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка получения рекомендаций: {e}")
+            return None
+    
+    def get_user_profile(self, user_id: int):
+        """
+        Получение профиля пользователя
+        """
+        url = f"{self.base_url}/profile/{user_id}"
+        
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка получения профиля: {e}")
+            return None
+
+# Пример использования
+client = RecommendationClient()
+
+# Получение рекомендаций с контекстом
+context = {
+    "time_of_day": "evening",
+    "user_preferences": {
+        "preferred_categories": ["chat", "entertainment"]
+    }
 }
 
-🛠️ Утилиты для разработки
-Тестовый клиент:
-html
+recommendations = client.get_recommendations(123, context)
+if recommendations:
+    print(f"Рекомендации для пользователя {recommendations['user_id']}:")
+    for rec in recommendations['recommendations']:
+        print(f"- {rec['category']}: {rec['reason']} (приоритет: {rec['priority']})")
 
-<!-- test_client.html -->
-<!DOCTYPE html>
-<html>
-<body>
-  <h2>Тест Analytics Collector</h2>
+🔌 WebSocket API
+Формат сообщений
+Отправка действия (Frontend → Analytics Collector)
+json
+
+{
+  "user_id": "string",
+  "action": "string"
+}
+
+Поддерживаемые действия:
+
+    chatting_assistant - общение с ассистентом
+
+    search_books - поиск книг
+
+    watch_videos - просмотр видео
+
+    read_articles - чтение статей
+
+    use_function_x - использование функции X
+
+    Любые другие пользовательские действия
+
+Ответ сервера
+json
+
+{
+  "status": "success" | "error",
+  "message": "string",
+  "timestamp": "ISO 8601 string"
+}
+
+Пример полного цикла WebSocket
+javascript
+
+const ws = new WebSocket('ws://localhost:8000/ws/analytics/frontend_app');
+
+// Подписка на события
+ws.addEventListener('open', () => {
+  console.log('Connected to analytics service');
   
-  <div>
-    <input type="text" id="userId" placeholder="User ID" value="test_user_123">
-    <input type="text" id="action" placeholder="Action" value="test_action">
-    <button onclick="sendAction()">Отправить действие</button>
-  </div>
+  // Отправка тестового действия
+  ws.send(JSON.stringify({
+    user_id: 'user_123',
+    action: 'chatting_assistant'
+  }));
+});
+
+ws.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
   
-  <div id="status">Статус: Не подключен</div>
-  <div id="log"></div>
+  if (data.status === 'success') {
+    console.log('Action processed successfully');
+  } else {
+    console.error('Error:', data.message);
+  }
+});
 
-  <script>
-    let ws = null;
+ws.addEventListener('error', (error) => {
+  console.error('WebSocket error:', error);
+});
+
+ws.addEventListener('close', () => {
+  console.log('Connection closed');
+});
+
+📊 Модели данных
+Действие пользователя (Analytics Collector)
+json
+
+{
+  "user_id": "string",
+  "action": "string"
+}
+
+Действие для обработки (Recommendation System)
+json
+
+{
+  "user_id": "integer",
+  "action_type": "string",
+  "action_count": "integer",
+  "timestamp": "string"
+}
+
+Рекомендация
+json
+
+{
+  "category": "string",
+  "priority": "float",
+  "confidence": "float",
+  "reason": "string",
+  "suggested_actions": ["string"]
+}
+
+Контекст для рекомендаций
+json
+
+{
+  "time_of_day": "string",  // "morning", "afternoon", "evening"
+  "user_preferences": {
+    "preferred_categories": ["string"]
+  }
+}
+
+⚠️ Обработка ошибок
+Коды состояния HTTP
+Analytics Collector
+
+    200 - Успешный запрос
+
+    400 - Неверный формат данных
+
+    404 - Ресурс не найден
+
+    500 - Внутренняя ошибка сервера
+
+Recommendation System
+
+    200 - Успешный запрос
+
+    400 - Неверный формат данных или контекста
+
+    404 - Профиль пользователя не найден
+
+    500 - Внутренняя ошибка сервера
+
+WebSocket ошибки
+json
+
+{
+  "status": "error",
+  "message": "Описание ошибки"
+}
+
+Возможные ошибки:
+
+    "Невалидный JSON" - неверный формат JSON
+
+    "user_id is required" - отсутствует user_id
+
+    "action is required" - отсутствует действие
+
+    "Внутренняя ошибка сервера" - серверная ошибка
+
+🧪 Тестирование API
+Использование cURL
+1. Проверка здоровья сервисов
+bash
+
+# Analytics Collector
+curl http://localhost:8000/health
+
+# Recommendation System
+curl http://localhost:5000/health
+curl http://localhost:5000/health/redis
+
+2. Получение рекомендаций
+bash
+
+# Без контекста
+curl http://localhost:5000/recommend/enhanced/123
+
+# С контекстом
+curl "http://localhost:5000/recommend/enhanced/123?context=%7B%22time_of_day%22%3A%22morning%22%7D"
+
+3. Получение статистики
+bash
+
+curl http://localhost:8000/stats/user123
+
+Использование Python для тестирования
+python
+
+import requests
+import json
+
+def test_analytics_collector():
+    """Тестирование Analytics Collector"""
+    print("Testing Analytics Collector...")
     
-    function connect() {
-      const clientId = 'test_client_' + Date.now();
-      ws = new WebSocket(`ws://localhost:8000/ws/analytics/${clientId}`);
-      
-      ws.onopen = () => {
-        document.getElementById('status').textContent = 'Статус: Подключен';
-      };
-      
-      ws.onmessage = (event) => {
-        const log = document.getElementById('log');
-        log.innerHTML = `<div>${new Date().toLocaleTimeString()}: ${event.data}</div>` + log.innerHTML;
-      };
-      
-      ws.onerror = (error) => {
-        document.getElementById('status').textContent = 'Статус: Ошибка';
-        console.error(error);
-      };
-    }
+    # Проверка здоровья
+    health = requests.get("http://localhost:8000/health").json()
+    print(f"Health: {health['status']}")
     
-    function sendAction() {
-      if (!ws || ws.readyState !== WebSocket.OPEN) {
-        alert('Сначала подключитесь!');
-        connect();
-        return;
-      }
-      
-      const action = {
-        user_id: document.getElementById('userId').value,
-        action: document.getElementById('action').value
-      };
-      
-      ws.send(JSON.stringify(action));
-    }
+    # Получение статистики
+    stats = requests.get("http://localhost:8000/stats/test_user").json()
+    print(f"Stats: {stats}")
     
-    // Автоподключение при загрузке
-    connect();
-  </script>
-</body>
-</html>
+    return health['status'] == 'healthy'
 
-📋 Checklist для интеграции
+def test_recommendation_system():
+    """Тестирование Recommendation System"""
+    print("\nTesting Recommendation System...")
+    
+    # Проверка здоровья
+    health = requests.get("http://localhost:5000/health").json()
+    print(f"Health: {health['status']}")
+    
+    # Получение рекомендаций
+    recs = requests.get("http://localhost:5000/recommend/enhanced/1").json()
+    print(f"Recommendations: {len(recs['recommendations'])} items")
+    
+    return health['status'] == 'healthy'
 
-    Добавить трекер аналитики в проект
+if __name__ == "__main__":
+    if test_analytics_collector() and test_recommendation_system():
+        print("\n✅ Все тесты пройдены успешно!")
+    else:
+        print("\n❌ Некоторые тесты не пройдены")
 
-    Настроить отправку основных действий (просмотры, клики)
+Использование Postman
+Коллекция для Analytics Collector
 
-    Реализовать уникальные ID пользователя и сессии
+    GET {{base_url}}/health
 
-    Добавить обработку ошибок и реконнект
+    GET {{base_url}}/stats/{{user_id}}
 
-    Протестировать подключение к локальному серверу
+    WebSocket ws://{{host}}:8000/ws/analytics/{{client_id}}
 
-    Настроить окружение для продакшена
+Коллекция для Recommendation System
 
-❓ Частые вопросы
+    GET {{base_url}}/health
 
-Q: Что делать если WebSocket не подключается?
-A: Проверьте:
+    GET {{base_url}}/recommend/enhanced/{{user_id}}
 
-    Запущен ли сервис (python app.py)
+    GET {{base_url}}/profile/{{user_id}}
 
-    Правильный ли адрес (localhost:8000)
+    DELETE {{base_url}}/profile/{{user_id}}
 
-    Не блокирует ли фаервол соединение
+📝 Важные заметки
+Для Frontend разработчиков
 
-Q: Как тестировать на реальном устройстве?
-A: Используйте IP адрес компьютера вместо localhost и убедитесь, что устройства в одной сети.
+    Всегда используйте try-catch при работе с WebSocket
 
-Q: Куда отправляются данные после обработки?
-A: Данные агрегируются и отправляются в Recommendation Engine для формирования персонализированных рекомендаций.
-📞 Контакты
+    Реализуйте повторное подключение при разрыве соединения
 
-При возникновении проблем или вопросов по интеграции обращайтесь к backend разработчику.
+    Кэшируйте рекомендации на клиенте для уменьшения запросов
 
-Счастливого трекинга! 🚀
+    Отправляйте действия пользователя в реальном времени
+
+Для Backend разработчиков
+
+    Реализуйте кэширование рекомендаций на бэкенде
+
+    Обрабатывайте временную недоступность сервисов
+
+    Используйте асинхронные вызовы для работы с API
+
+    Реализуйте механизм повторных попыток при ошибках
+
+Общие рекомендации
+
+    Мониторинг: Регулярно проверяйте /health эндпоинты
+
+    Логирование: Все ошибки логируются в соответствующие файлы
+
+    Производительность: WebSocket обеспечивает минимальную задержку
+
+    Масштабируемость: Сервисы спроектированы для горизонтального масштабирования
+
+🔗 Полезные ссылки
+
+    Swagger документация Analytics Collector
+
+    Swagger документация Recommendation System
+
+    WebSocket RFC
+
+    Docker документация
+
+Поддержка: При возникновении вопросов обращайтесь к команде разработки или создавайте issue в репозитории проекта.
