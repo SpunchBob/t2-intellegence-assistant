@@ -18,42 +18,56 @@ struct ChatView: View {
             Color.tele2Dark
                 .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                // Заголовок
-                headerSection
-                
-                // Список сообщений
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
-                                MessageBubble(
-                                    message: message,
-                                    showShopButton: index == 0 && viewModel.hasShopButton
-                                )
-                                .id(message.id)
+            if viewModel.isLoading && viewModel.messages.isEmpty {
+                ProgressView()
+                    .tint(.tele2Pink)
+            } else {
+                VStack(spacing: 0) {
+                    // Заголовок
+                    headerSection
+                    
+                    // Список сообщений
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
+                                    MessageBubble(
+                                        message: message,
+                                        showShopButton: index == 0 && viewModel.hasShopButton
+                                    )
+                                    .id(message.id)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
+                        }
+                        .onChange(of: viewModel.messages.count) { _ in
+                            if let lastMessage = viewModel.messages.last {
+                                withAnimation {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 20)
                     }
-                    .onChange(of: viewModel.messages.count) { _ in
-                        if let lastMessage = viewModel.messages.last {
-                            withAnimation {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
-                        }
-                    }
+                    
+                    // Быстрые действия
+                    quickActionsSection
+                    
+                    // Поле ввода
+                    inputSection
                 }
-                
-                // Быстрые действия
-                quickActionsSection
-                
-                // Поле ввода
-                inputSection
             }
         }
         .navigationBarHidden(true)
+        .alert("Ошибка", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK", role: .cancel) {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            if let error = viewModel.errorMessage {
+                Text(error)
+            }
+        }
     }
     
     private var headerSection: some View {

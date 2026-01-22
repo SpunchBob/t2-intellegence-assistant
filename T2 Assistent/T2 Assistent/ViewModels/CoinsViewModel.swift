@@ -70,6 +70,14 @@ class CoinsViewModel {
     private func loadMiniGames() {
         miniGames = [
             MiniGame(
+                name: "Три в ряд",
+                description: "",
+                iconName: "grid.circle.fill",
+                maxReward: 50,
+                bonusFromMax: 5,
+                color: "pink"
+            ),
+            MiniGame(
                 name: "Спам-отбивалка",
                 description: "",
                 iconName: "bolt.fill",
@@ -118,14 +126,23 @@ class CoinsViewModel {
         }
     }
     
+    var selectedGame: MiniGame?
+    var showGameView = false
+    
     func playGame(_ game: MiniGame) {
         guard game.isAvailable else { return }
-        guard let userState = userState else { return }
         
-        // Имитация игры - просто начисляем награду
-        userState.addCoins(game.reward)
-        userState.addExperience(game.reward / 2) // Опыт за игру
-        rewardMessage = "Вы прошли игру \(game.name)! Получено \(game.reward) койнов."
-        showRewardAlert = true
+        // Для игры "Три в ряд" открываем специальный экран
+        if game.name == "Три в ряд" {
+            selectedGame = game
+            showGameView = true
+        } else {
+            // Для других игр - имитация
+            guard let userState = userState else { return }
+            userState.addCoins(game.reward)
+            userState.addExperience(game.reward / 2)
+            rewardMessage = "Вы прошли игру \(game.name)! Получено \(game.reward) койнов."
+            showRewardAlert = true
+        }
     }
 }

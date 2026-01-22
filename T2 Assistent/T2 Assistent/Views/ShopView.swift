@@ -17,27 +17,36 @@ struct ShopView: View {
             Color.tele2Dark
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Заголовок
-                    headerSection
-                    
-                    // Карточка Мой Питомец
-                    myPetCard
-                    
-                    // Рекомендации
-                    recommendationsSection
-                    
-                    // Акция дня
-                    dealOfTheDaySection
-                    
-                    // Фильтры
-                    filtersSection
-                    
-                    // Список товаров
-                    itemsGrid
+            if viewModel.isLoading && viewModel.items.isEmpty {
+                ProgressView()
+                    .tint(.tele2Pink)
+            } else {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Заголовок
+                        headerSection
+                        
+                        // Карточка Мой Питомец
+                        myPetCard
+                        
+                        // Рекомендации
+                        recommendationsSection
+                        
+                        // Акция дня
+                        if let deal = viewModel.dealOfTheDay {
+                            dealOfTheDayCard(deal: deal)
+                        } else {
+                            dealOfTheDaySection
+                        }
+                        
+                        // Фильтры
+                        filtersSection
+                        
+                        // Список товаров
+                        itemsGrid
+                    }
+                    .padding(.bottom, 100) // Отступ для таббара
                 }
-                .padding(.bottom, 100) // Отступ для таббара
             }
         }
         .navigationBarHidden(true)
@@ -49,6 +58,95 @@ struct ShopView: View {
         } message: {
             Text(viewModel.purchaseMessage)
         }
+        .alert("Ошибка", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK", role: .cancel) {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            if let error = viewModel.errorMessage {
+                Text(error)
+            }
+        }
+    }
+    
+    private var dealOfTheDaySection: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Акция дня")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text("Скидка 30% на 10 ГБ")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                    
+                    Text("До конца акции: 5ч 12мин")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                }
+            }
+            
+            Spacer()
+            
+            Image(systemName: "flame.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.tele2Pink)
+        }
+        .padding(20)
+        .background(
+            LinearGradient(
+                colors: [Color.tele2Pink.opacity(0.3), Color.tele2Pink.opacity(0.1)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(16)
+        .padding(.horizontal, 16)
+    }
+    
+    private func dealOfTheDayCard(deal: ShopItem) -> some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Акция дня")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text(deal.name)
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                    
+                    Text("До конца акции: 5ч 12мин")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                }
+            }
+            
+            Spacer()
+            
+            Image(systemName: "flame.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.tele2Pink)
+        }
+        .padding(20)
+        .background(
+            LinearGradient(
+                colors: [Color.tele2Pink.opacity(0.3), Color.tele2Pink.opacity(0.1)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(16)
+        .padding(.horizontal, 16)
     }
     
     private var headerSection: some View {
@@ -123,46 +221,6 @@ struct ShopView: View {
                 .padding(.horizontal, 16)
             }
         }
-    }
-    
-    private var dealOfTheDaySection: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Акция дня")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                Text("Скидка 30% на 10 ГБ")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                
-                HStack(spacing: 6) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                    
-                    Text("До конца акции: 5ч 12мин")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                }
-            }
-            
-            Spacer()
-            
-            Image(systemName: "flame.fill")
-                .font(.system(size: 32))
-                .foregroundColor(.tele2Pink)
-        }
-        .padding(20)
-        .background(
-            LinearGradient(
-                colors: [Color.tele2Pink.opacity(0.3), Color.tele2Pink.opacity(0.1)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        )
-        .cornerRadius(16)
-        .padding(.horizontal, 16)
     }
     
     private var filtersSection: some View {
