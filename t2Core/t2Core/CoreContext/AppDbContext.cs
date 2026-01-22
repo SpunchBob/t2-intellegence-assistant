@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<PaidTask> PaidTasks { get; set; }
     public DbSet<UserTask> UserTasks { get; set; }
+    public DbSet<Purchase> Purchases { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
