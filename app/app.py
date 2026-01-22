@@ -7,18 +7,20 @@ from typing import Dict, List
 import redis
 import json
 
+# Создание Flask-application и API 
+
 app = Flask(__name__)
 api = Api(app, version='2.0', title='Enhanced Recommendation Engine',
           description='Улучшенная система рекомендаций с поддержкой аналитики')
 
-# Настройка
+# Настройка Redis и создание клиента Redis
+
 REDIS_HOST = "redis"
 REDIS_PORT = 6379
-
-# Redis клиент
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
 # Модели для Swagger
+
 action_model = api.model('AnalyticsAction', {
     'user_id': fields.Integer(required=True),
     'action_type': fields.String(required=True),
@@ -36,18 +38,18 @@ recommendation_model = api.model('EnhancedRecommendation', {
 
 # Маппинг действий на категории с весами
 ACTION_CATEGORY_MAPPING = {
-    'view_purchases': {
-        'category': 'electronics',
+    'chatting_assitant': {
+        'category': 'chat',
         'weight': 1.2,
         'decay_rate': 0.95  # Коэффициент затухания со временем
     },
     'search_books': {
-        'category': 'books',
+        'category': 'time',
         'weight': 0.9,
         'decay_rate': 0.9
     },
     'watch_videos': {
-        'category': 'entertainment',
+        'category': 'messages',
         'weight': 1.1,
         'decay_rate': 0.85
     },
