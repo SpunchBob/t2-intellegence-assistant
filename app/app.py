@@ -1,192 +1,318 @@
 from flask import Flask, request, jsonify
 from flask_restx import Api, Resource, fields
-from typing import Dict, List, Any
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
+import logging
+from typing import Dict, List
+import redis
 import json
-import os
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='Recommendation System API',
-          description='Система рекомендаций на основе действий пользователей')
+api = Api(app, version='2.0', title='Enhanced Recommendation Engine',
+          description='Улучшенная система рекомендаций с поддержкой аналитики')
 
-# Модели данных
-ns = api.namespace('recommendations', description='Операции рекомендаций')
+# Настройка
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
 
-user_action_model = api.model('UserAction', {
-    'user_id': fields.Integer(required=True, description='ID пользователя'),
-    'action_type': fields.String(required=True, description='Тип действия'),
-    'action_count': fields.Integer(required=True, description='Количество действий'),
-    'timestamp': fields.String(description='Временная метка')
+# Redis клиент
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+
+# Модели для Swagger
+action_model = api.model('AnalyticsAction', {
+    'user_id': fields.Integer(required=True),
+    'action_type': fields.String(required=True),
+    'action_count': fields.Integer(required=True),
+    'timestamp': fields.String()
 })
 
-category_model = api.model('Category', {
-    'category_id': fields.Integer(description='ID категории'),
-    'category_name': fields.String(description='Название категории'),
-    'priority': fields.Float(description='Приоритет категории')
+recommendation_model = api.model('EnhancedRecommendation', {
+    'category': fields.String(description='Категория'),
+    'priority': fields.Float(description='Приоритет 0-1'),
+    'confidence': fields.Float(description='Уверенность в рекомендации'),
+    'reason': fields.String(description='Обоснование рекомендации'),
+    'suggested_actions': fields.List(fields.String, description='Предлагаемые действия')
 })
 
-# Карта соответствия действий категориям
-ACTION_TO_CATEGORY_MAP = {
-    'view_purchases': 'electronics',
-    'use_function_x': 'software',
-    'view_fashion': 'clothing',
-    'search_books': 'books',
-    'watch_videos': 'entertainment',
-    'browse_gadgets': 'electronics',
-    'read_articles': 'education'
+# Маппинг действий на категории с весами
+ACTION_CATEGORY_MAPPING = {
+    'view_purchases': {
+        'category': 'electronics',
+        'weight': 1.2,
+        'decay_rate': 0.95  # Коэффициент затухания со временем
+    },
+    'search_books': {
+        'category': 'books',
+        'weight': 0.9,
+        'decay_rate': 0.9
+    },
+    'watch_videos': {
+        'category': 'entertainment',
+        'weight': 1.1,
+        'decay_rate': 0.85
+    },
+    'read_articles': {
+        'category': 'education',
+        'weight': 0.7,
+        'decay_rate': 0.8
+    },
+    'use_function_x': {
+        'category': 'software',
+        'weight': 1.0,
+        'decay_rate': 0.9
+    }
 }
 
-CATEGORY_WEIGHTS = {
-    'electronics': 1.2,
-    'software': 1.0,
-    'clothing': 0.8,
-    'books': 0.9,
-    'entertainment': 1.1,
-    'education': 0.7
-}
-
-class RecommendationSystem:
+class EnhancedRecommendationSystem:
     def __init__(self):
         self.user_profiles = {}
-        self.category_scores = {}
+        self.category_decay = {}  # Для учета времени
         
-    def process_actions(self, user_id: int, actions: List[Dict]) -> Dict[str, float]:
-        """Обработка действий пользователя и расчет приоритетов категорий"""
-        if user_id not in self.user_profiles:
-            self.user_profiles[user_id] = {}
-            self.category_scores[user_id] = {}
+    def process_batch_actions(self, actions: List[Dict]):
+        """Пакетная обработка действий из analytics collector"""
+        results = {}
         
         for action in actions:
+            user_id = action['user_id']
             action_type = action['action_type']
             count = action['action_count']
             
-            # Определяем категорию по типу действия
-            category = self._map_action_to_category(action_type)
+            if user_id not in self.user_profiles:
+                self.user_profiles[user_id] = {}
+                self.category_decay[user_id] = {}
             
-            if category:
-                # Обновляем счетчик категории
-                current_score = self.category_scores[user_id].get(category, 0)
-                weight = CATEGORY_WEIGHTS.get(category, 1.0)
-                
-                # Учитываем вес категории и количество действий
-                self.category_scores[user_id][category] = current_score + (count * weight)
+            # Получаем настройки категории
+            category_config = ACTION_CATEGORY_MAPPING.get(action_type)
+            if not category_config:
+                continue
+            
+            category = category_config['category']
+            weight = category_config['weight']
+            decay_rate = category_config['decay_rate']
+            
+            # Применяем затухание старых действий
+            self._apply_decay(user_id, category, decay_rate)
+            
+            # Добавляем новые действия
+            current_score = self.user_profiles[user_id].get(category, 0)
+            self.user_profiles[user_id][category] = current_score + (count * weight)
+            
+            # Обновляем время последнего действия
+            self.category_decay[user_id][category] = datetime.now()
+            
+            # Сохраняем в Redis для persistence
+            self._save_to_redis(user_id)
+            
+            if user_id not in results:
+                results[user_id] = {'processed': 0, 'categories': set()}
+            
+            results[user_id]['processed'] += 1
+            results[user_id]['categories'].add(category)
         
-        return self._calculate_priorities(user_id)
+        return results
     
-    def _map_action_to_category(self, action_type: str) -> str:
-        """Сопоставление типа действия с категорией"""
-        for key, category in ACTION_TO_CATEGORY_MAP.items():
-            if key in action_type.lower():
-                return category
-        return None
+    def _apply_decay(self, user_id: int, category: str, decay_rate: float):
+        """Применение затухания к старым действиям"""
+        if user_id in self.user_profiles and category in self.user_profiles[user_id]:
+            last_update = self.category_decay[user_id].get(category)
+            if last_update:
+                hours_passed = (datetime.now() - last_update).total_seconds() / 3600
+                decay_factor = decay_rate ** (hours_passed / 24)  # Дневное затухание
+                self.user_profiles[user_id][category] *= decay_factor
     
-    def _calculate_priorities(self, user_id: int) -> Dict[str, float]:
-        """Расчет приоритетов категорий для пользователя"""
-        if user_id not in self.category_scores:
-            return {}
-        
-        scores = self.category_scores[user_id]
-        if not scores:
-            return {}
-        
-        # Нормализация оценок
-        total = sum(scores.values())
-        priorities = {}
-        
-        for category, score in scores.items():
-            # Применяем softmax для получения вероятностей
-            priorities[category] = score / total if total > 0 else 0
-        
-        # Сортировка по приоритету
-        sorted_priorities = dict(sorted(
-            priorities.items(), 
-            key=lambda x: x[1], 
-            reverse=True
-        ))
-        
-        return sorted_priorities
+    def _save_to_redis(self, user_id: int):
+        """Сохранение профиля пользователя в Redis"""
+        if redis_client:
+            key = f"user_profile:{user_id}"
+            profile_data = {
+                'scores': self.user_profiles.get(user_id, {}),
+                'last_updated': datetime.now().isoformat()
+            }
+            redis_client.setex(key, 604800, json.dumps(profile_data))  # TTL 7 дней
     
-    def get_recommendations(self, user_id: int, top_n: int = 3) -> List[Dict]:
-        """Получение рекомендаций для пользователя"""
-        priorities = self._calculate_priorities(user_id)
+    def _load_from_redis(self, user_id: int):
+        """Загрузка профиля пользователя из Redis"""
+        if redis_client:
+            key = f"user_profile:{user_id}"
+            data = redis_client.get(key)
+            if data:
+                profile_data = json.loads(data)
+                self.user_profiles[user_id] = profile_data['scores']
+                return True
+        return False
+    
+    def get_enhanced_recommendations(self, user_id: int, context: Dict = None) -> List[Dict]:
+        """Получение улучшенных рекомендаций с контекстом"""
         
+        # Пытаемся загрузить из Redis
+        if user_id not in self.user_profiles:
+            self._load_from_redis(user_id)
+        
+        if user_id not in self.user_profiles or not self.user_profiles[user_id]:
+            return self._get_fallback_recommendations()
+        
+        scores = self.user_profiles[user_id]
+        
+        # Рассчитываем приоритеты
+        total_score = sum(scores.values())
+        if total_score == 0:
+            return self._get_fallback_recommendations()
+        
+        # Нормализация и добавление метаданных
         recommendations = []
-        for i, (category, priority) in enumerate(list(priorities.items())[:top_n]):
+        for category, score in scores.items():
+            priority = score / total_score
+            
+            # Рассчитываем уверенность на основе количества данных
+            confidence = min(0.95, 0.3 + (len(scores) * 0.1))
+            
+            # Генерируем обоснование
+            reason = self._generate_reason(category, score, priority)
+            
+            # Предлагаемые действия
+            suggested_actions = self._get_suggested_actions(category)
+            
             recommendations.append({
-                'category_id': i + 1,
-                'category_name': category,
+                'category': category,
                 'priority': round(priority, 4),
-                'rank': i + 1
+                'confidence': round(confidence, 2),
+                'reason': reason,
+                'suggested_actions': suggested_actions
             })
         
-        return recommendations
-
-# Инициализация системы рекомендаций
-recommendation_system = RecommendationSystem()
-
-@ns.route('/process')
-class ProcessActions(Resource):
-    @ns.expect([user_action_model])
-    @ns.response(200, 'Success')
-    def post(self):
-        """Обработка действий пользователя и получение рекомендаций"""
-        data = request.json
+        # Сортируем по приоритету и уверенности
+        recommendations.sort(key=lambda x: (x['priority'], x['confidence']), reverse=True)
         
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
+        # Применяем контекстные фильтры если есть
+        if context:
+            recommendations = self._apply_context_filters(recommendations, context)
         
-        # Группируем действия по пользователям
-        user_actions = {}
-        for action in data:
-            user_id = action['user_id']
-            if user_id not in user_actions:
-                user_actions[user_id] = []
-            user_actions[user_id].append(action)
+        return recommendations[:5]  # Топ-5 рекомендаций
+    
+    def _generate_reason(self, category: str, score: float, priority: float) -> str:
+        """Генерация обоснования рекомендации"""
+        reasons = {
+            'electronics': f"Вы проявили интерес к электронике ({priority:.0%} активности)",
+            'books': f"На основе вашего интереса к чтению ({priority:.0%} активности)",
+            'entertainment': f"Вы часто смотрите развлекательный контент",
+            'education': f"Ваша активность в обучении высока",
+            'software': f"Вы активно используете функционал системы"
+        }
+        return reasons.get(category, f"На основе вашей активности в категории {category}")
+    
+    def _get_suggested_actions(self, category: str) -> List[str]:
+        """Получение предлагаемых действий для категории"""
+        suggestions = {
+            'electronics': ["Посмотреть новые гаджеты", "Сравнить цены", "Почитать обзоры"],
+            'books': ["Поискать новинки", "Посмотреть бестселлеры", "Выбрать по жанру"],
+            'entertainment': ["Посмотреть рекомендации", "Подборка по интересам", "Популярное сейчас"],
+            'education': ["Новые курсы", "Статьи по теме", "Вебинары"],
+            'software': ["Изучить новые функции", "Настройки профиля", "Советы по использованию"]
+        }
+        return suggestions.get(category, ["Исследовать категорию"])
+    
+    def _get_fallback_recommendations(self) -> List[Dict]:
+        """Рекомендации по умолчанию"""
+        return [
+            {
+                'category': 'electronics',
+                'priority': 0.3,
+                'confidence': 0.5,
+                'reason': 'Популярная категория среди пользователей',
+                'suggested_actions': ['Посмотреть новинки', 'Специальные предложения']
+            },
+            {
+                'category': 'books',
+                'priority': 0.25,
+                'confidence': 0.5,
+                'reason': 'Часто просматриваемая категория',
+                'suggested_actions': ['Бестселлеры', 'Новинки']
+            }
+        ]
+    
+    def _apply_context_filters(self, recommendations: List[Dict], context: Dict) -> List[Dict]:
+        """Применение контекстных фильтров"""
+        filtered = []
         
-        results = {}
-        for user_id, actions in user_actions.items():
-            priorities = recommendation_system.process_actions(user_id, actions)
-            recommendations = recommendation_system.get_recommendations(user_id)
+        for rec in recommendations:
+            # Пример фильтрации по времени суток
+            if 'time_of_day' in context:
+                if context['time_of_day'] == 'morning' and rec['category'] == 'education':
+                    rec['priority'] *= 1.2
+                elif context['time_of_day'] == 'evening' and rec['category'] == 'entertainment':
+                    rec['priority'] *= 1.3
             
-            results[user_id] = {
-                'processed_actions': len(actions),
-                'priorities': priorities,
-                'recommendations': recommendations,
+            filtered.append(rec)
+        
+        filtered.sort(key=lambda x: x['priority'], reverse=True)
+        return filtered
+
+# Инициализация системы
+rec_system = EnhancedRecommendationSystem()
+
+@api.route('/process/batch')
+class ProcessBatch(Resource):
+    @api.expect([action_model])
+    @api.doc(description='Пакетная обработка действий от analytics collector')
+    def post(self):
+        """Обработка батча действий"""
+        actions = request.json
+        
+        if not isinstance(actions, list):
+            return {'error': 'Expected a list of actions'}, 400
+        
+        results = rec_system.process_batch_actions(actions)
+        
+        # Форматируем ответ
+        response = {}
+        for user_id, stats in results.items():
+            response[user_id] = {
+                'actions_processed': stats['processed'],
+                'categories_affected': list(stats['categories']),
                 'timestamp': datetime.now().isoformat()
             }
         
-        return jsonify(results)
+        return response
 
-@ns.route('/recommend/<int:user_id>')
-class GetRecommendations(Resource):
-    @ns.response(200, 'Success')
+@api.route('/recommend/enhanced/<int:user_id>')
+class EnhancedRecommendations(Resource):
+    @api.doc(description='Получение улучшенных рекомендаций с контекстом')
+    @api.param('context', 'Контекстные данные (JSON)')
     def get(self, user_id):
-        """Получение рекомендаций для конкретного пользователя"""
-        recommendations = recommendation_system.get_recommendations(user_id)
+        """Получение рекомендаций с контекстом"""
+        context_str = request.args.get('context')
+        context = json.loads(context_str) if context_str else {}
         
-        if not recommendations:
-            return jsonify({
-                'user_id': user_id,
-                'message': 'No recommendations available. Process some actions first.',
-                'recommendations': []
-            })
+        recommendations = rec_system.get_enhanced_recommendations(user_id, context)
         
-        return jsonify({
+        return {
             'user_id': user_id,
             'timestamp': datetime.now().isoformat(),
+            'context_used': bool(context),
             'recommendations': recommendations
-        })
+        }
 
-@ns.route('/health')
-class HealthCheck(Resource):
+@api.route('/profile/<int:user_id>')
+class UserProfile(Resource):
+    def get(self, user_id):
+        """Получение профиля пользователя"""
+        if user_id in rec_system.user_profiles:
+            return {
+                'user_id': user_id,
+                'profile': rec_system.user_profiles[user_id],
+                'last_updated': datetime.now().isoformat()
+            }
+        return {'message': 'Profile not found'}, 404
+
+@api.route('/health/redis')
+class RedisHealth(Resource):
     def get(self):
-        """Проверка здоровья сервиса"""
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'users_processed': len(recommendation_system.user_profiles)
-        })
+        """Проверка подключения к Redis"""
+        try:
+            redis_client.ping()
+            return {'redis': 'connected'}
+        except:
+            return {'redis': 'disconnected'}, 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
