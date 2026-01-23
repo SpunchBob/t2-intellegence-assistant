@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Redis сервис
+  redis:
+    image: redis:7-alpine
+    container_name: t2-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - t2-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Analytics Collector сервис
+  analytics-collector:
+    build:
+      context: ./analytics-collector
+      dockerfile: Dockerfile
+    container_name: t2-analytics-collector
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./analytics-collector:/app
+      - analytics_logs:/app/logs
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-system:5000
+      - LOG_LEVEL=INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+      recommendation-system:
+        condition: service_started
+    networks:
+      - t2-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Recommendation System сервис
+  recommendation-system:
+    build:
+      context: ./recommendation-system
+      dockerfile: Dockerfile
+    container_name: t2-recommendation-system
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./recommendation-system:/app
+      - recommendation_logs:/app/logs
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - t2-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+    driver: local
+  analytics_logs:
+    driver: local
+  recommendation_logs:
+    driver: local
+
+networks:
+  t2-network:
+    driver: bridge
+    name: t2-intelligence-network
