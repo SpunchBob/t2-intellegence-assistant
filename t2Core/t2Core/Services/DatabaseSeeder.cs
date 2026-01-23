@@ -73,6 +73,18 @@ namespace t2Core.Services
                     db.Balances.Add(new Balance { UserId = 1, Amount = 0m });
                 }
 
+                // Добавляем питомца для пользователя 1 (если ещё нет)
+                if (!await db.Pets.AnyAsync(p => p.UserId == 1, ct))
+                {
+                    db.Pets.Add(new Pet
+                    {
+                        UserId = 1,
+                        Type = "dargon",          
+                        Location = "home",
+                        Crown = "golden"     
+                    });
+                }
+
                 await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateException dbEx)
