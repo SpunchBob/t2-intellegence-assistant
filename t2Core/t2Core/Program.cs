@@ -56,13 +56,28 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
-
+// Автоматическое применение миграций + сидирование данных
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DatabaseSeeder.SeedAsync(db);
+
+    try
+    {
+        // 1. Применяем все миграции (создаёт БД, если её нет)
+        await db.Database.MigrateAsync();
+
+        // 2. Заполняем тестовыми данными (если нужно)
+        await DatabaseSeeder.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        // Критично — если миграции не применились, приложение не должно запускаться
+        Console.WriteLine($"[FATAL] Database migration failed: {ex.Message}");
+        // Можно даже Environment.Exit(1); чтобы контейнер упал и логи показали ошибку
+        throw;  // или просто throw, чтобы Kestrel показал ошибку в логах
+    }
 }
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
