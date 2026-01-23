@@ -13,7 +13,7 @@ class MatchThreeGameViewModel {
     var tiles: [[MatchThreeTile]] = []
     var score: Int = 0
     var moves: Int = 30
-    var targetScore: Int = 1000
+    var targetScore: Int = 200
     var isGameOver: Bool = false
     var isWon: Bool = false
     var selectedTile: (row: Int, col: Int)? = nil
@@ -34,7 +34,7 @@ class MatchThreeGameViewModel {
     func startNewGame() {
         score = 0
         moves = 30
-        targetScore = 1000
+        targetScore = 200
         isGameOver = false
         isWon = false
         selectedTile = nil
@@ -253,6 +253,10 @@ class MatchThreeGameViewModel {
     
     private func awardReward() {
         guard let userState = userState else { return }
-        //userState.addCoins(reward)
+        
+        // Отправляем награду на бэкенд
+        Task {
+            await userState.addCoins(reward)
+        }
     }
 }

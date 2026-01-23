@@ -113,30 +113,6 @@ class CoinsViewModel {
                 bonusFromMax: 5,
                 color: "pink"
             ),
-            MiniGame(
-                name: "Пазл eSIM",
-                description: "",
-                iconName: "puzzlepiece.fill",
-                maxReward: 40,
-                bonusFromMax: 5,
-                color: "blue"
-            ),
-            MiniGame(
-                name: "Гонка сигнала",
-                description: "",
-                iconName: "car.fill",
-                maxReward: 60,
-                bonusFromMax: 5,
-                color: "yellow"
-            ),
-            MiniGame(
-                name: "Викторина Т2",
-                description: "",
-                iconName: "brain.head.profile",
-                maxReward: 45,
-                bonusFromMax: 5,
-                color: "green"
-            )
         ]
     }
     
@@ -195,11 +171,18 @@ class CoinsViewModel {
             selectedGame = game
             showGameView = true
         } else {
-            // Для других игр - имитация
+            // Для других игр - имитация с отправкой на бэкенд
             guard let userState = userState else { return }
-            userState.addCoinsLocally(game.reward)
-            rewardMessage = "Вы прошли игру \(game.name)! Получено \(game.reward) койнов."
-            showRewardAlert = true
+            
+            Task {
+                // Отправляем награду на бэкенд (50 койнов за прохождение игры)
+                await userState.addCoins(50)
+                
+                await MainActor.run {
+                    self.rewardMessage = "Вы прошли игру \(game.name)! Получено 50 койнов."
+                    self.showRewardAlert = true
+                }
+            }
         }
     }
 }

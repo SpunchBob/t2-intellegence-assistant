@@ -40,6 +40,15 @@ struct ChatView: View {
                                     )
                                     .id(message.id)
                                 }
+                                
+                                // Индикатор "печатает..."
+                                if viewModel.isTyping {
+                                    TypingIndicator(
+                                        isPetEscaped: tutorialManager.isPetEscaped,
+                                        petIconName: userState.pet.iconName
+                                    )
+                                    .id("typing")
+                                }
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 20)
@@ -48,6 +57,13 @@ struct ChatView: View {
                             if let lastMessage = viewModel.messages.last {
                                 withAnimation {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
+                            }
+                        }
+                        .onChange(of: viewModel.isTyping) { _ in
+                            if viewModel.isTyping {
+                                withAnimation {
+                                    proxy.scrollTo("typing", anchor: .bottom)
                                 }
                             }
                         }
@@ -133,10 +149,10 @@ struct ChatView: View {
                     .font(.system(size: 18))
                     .foregroundColor(.white)
                     .frame(width: 44, height: 44)
-                    .background(Color.tele2Pink)
+                    .background(messageText.isEmpty || viewModel.isTyping ? Color.tele2Pink.opacity(0.5) : Color.tele2Pink)
                     .clipShape(Circle())
             }
-            .disabled(messageText.isEmpty)
+            .disabled(messageText.isEmpty || viewModel.isTyping)
             
             // Кнопка микрофона
             Button(action: {
@@ -248,6 +264,55 @@ struct QuickActionButton: View {
                 .padding(.vertical, 10)
                 .background(Color.tele2LightGray)
                 .cornerRadius(20)
+        }
+    }
+}
+
+// MARK: - Typing Indicator
+struct TypingIndicator: View {
+    let isPetEscaped: Bool
+    var petIconName: String = "FoxClassic"
+    
+    @State private var dotOffset: CGFloat = 0
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            if isPetEscaped {
+                Image(systemName: "questionmark")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 24, height: 24)
+            } else {
+                Image(petIconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+            }
+            
+            HStack(spacing: 4) {
+                ForEach(0..<3) { index in
+                    Circle()
+                        .fill(Color.white.opacity(0.6))
+                        .frame(width: 8, height: 8)
+                        .offset(y: dotOffset)
+                        .animation(
+                            Animation
+                                .easeInOut(duration: 0.5)
+                                .repeatForever()
+                                .delay(Double(index) * 0.15),
+                            value: dotOffset
+                        )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Color.white.opacity(0.1))
+            .cornerRadius(16)
+            .onAppear {
+                dotOffset = -5
+            }
+            
+            Spacer(minLength: 0)
         }
     }
 }

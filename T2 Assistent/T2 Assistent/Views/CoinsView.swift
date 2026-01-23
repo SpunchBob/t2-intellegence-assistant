@@ -13,10 +13,6 @@ struct CoinsView: View {
     @State private var timeRemaining: TimeInterval = 5 * 3600 + 12 * 60 + 25 // 5ч 12мин 25сек
     @ObservedObject private var tutorialManager = TutorialManager.shared
 
-    // New state for games
-    @State private var showTetris = false
-    @State private var showSnake = false
-
     var body: some View {
         ZStack {
             Color.tele2Dark
@@ -229,32 +225,8 @@ struct CoinsView: View {
                         petIconName: userState.pet.iconName,
                         petTypeName: petTypeName
                     ) {
-                        // Use local handler: if special games then open local views, otherwise delegate to VM
-                        if game.name == "Тетрис" {
-                            showTetris = true
-                        } else if game.name == "Змейка" {
-                            showSnake = true
-                        } else {
-                            viewModel.playGame(game)
-                        }
+                        viewModel.playGame(game)
                     }
-                }
-
-                // Additional explicit cards for Tetris and Snake in case viewModel doesn't include them
-                MiniGameCardNew(
-                    game: MiniGame(name: "Тетрис", description: "", iconName: "square.grid.3x3.fill", maxReward: 100, bonusFromMax: 10, color: "pink"),
-                    petIconName: userState.pet.iconName,
-                    petTypeName: petTypeName
-                ) {
-                    showTetris = true
-                }
-
-                MiniGameCardNew(
-                    game: MiniGame(name: "Змейка", description: "", iconName: "hare.fill", maxReward: 80, bonusFromMax: 8, color: "pink"),
-                    petIconName: userState.pet.iconName,
-                    petTypeName: petTypeName
-                ) {
-                    showSnake = true
                 }
             }
             .padding(.horizontal, 16)
@@ -390,12 +362,13 @@ struct MiniGameCardNew: View {
                     }
                 }
             }
+            
+            // Название игры
+            Text(game.name)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.tele2Dark)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Макс. выигрыш: \(game.maxReward) Койнов")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-
                 Text("\(game.maxReward) Койнов")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(iconColor)

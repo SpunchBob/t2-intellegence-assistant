@@ -10,7 +10,7 @@ import SwiftUI
 struct TopBarView: View {
     @Environment(UserStateService.self) private var userState
     @State private var topBarManager = TopBarManager.shared
-    @State private var showPetProfile = false
+    @State private var petProfileManager = PetProfileManager.shared
     @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
@@ -42,7 +42,7 @@ struct TopBarView: View {
             // Иконка питомца с уведомлением
             Button(action: {
                 withAnimation {
-                    showPetProfile = true
+                    petProfileManager.showProfile()
                 }
             }) {
                 ZStack(alignment: .topTrailing) {
@@ -108,9 +108,18 @@ struct TopBarView: View {
                 endPoint: .bottom
             )
         )
-        .popover(isPresented: $showPetProfile) {
-            PetProfileView(isPresented: $showPetProfile)
-                .environment(userState)
+        .popover(isPresented: Binding(
+            get: { petProfileManager.isPresented },
+            set: { if !$0 { petProfileManager.hideProfile() } }
+        )) {
+            PetProfileView(
+                isPresented: Binding(
+                    get: { petProfileManager.isPresented },
+                    set: { if !$0 { petProfileManager.hideProfile() } }
+                ),
+                startInEditMode: petProfileManager.startInEditMode
+            )
+            .environment(userState)
         }
     }
 }

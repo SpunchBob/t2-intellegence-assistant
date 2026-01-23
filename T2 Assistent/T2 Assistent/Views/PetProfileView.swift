@@ -12,6 +12,9 @@ struct PetProfileView: View {
     @Binding var isPresented: Bool
     @ObservedObject private var tutorialManager = TutorialManager.shared
     
+    /// Открыть сразу в режиме редактирования
+    var startInEditMode: Bool = false
+    
     // Режим редактирования
     @State private var isEditing = false
     @State private var selectedType: String = ""
@@ -96,6 +99,11 @@ struct PetProfileView: View {
             // Инициализируем выбранные значения
             selectedType = userState.pet.type
             selectedCrown = userState.pet.crown
+            
+            // Если запрошен режим редактирования - включаем его
+            if startInEditMode && !tutorialManager.isPetEscaped {
+                isEditing = true
+            }
         }
     }
     
@@ -217,10 +225,11 @@ struct PetProfileView: View {
     
     private var viewingSection: some View {
         VStack(spacing: 24) {
-            // Тип питомца
-            Text(petTypeName)
-                .font(.system(size: 32, weight: .bold))
-                .foregroundColor(.white)
+            // Тип питомца (или сообщение о побеге)
+            Text(tutorialManager.isPetEscaped ? "Я КУДА-ТО СБЕЖАЛ..." : petTypeName)
+                .font(.system(size: tutorialManager.isPetEscaped ? 24 : 32, weight: .bold))
+                .foregroundColor(tutorialManager.isPetEscaped ? .tele2Pink : .white)
+                .multilineTextAlignment(.center)
             
             // Корона
             if !userState.pet.crown.isEmpty && userState.pet.crown != "none" {

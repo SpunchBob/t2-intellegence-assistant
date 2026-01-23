@@ -11,6 +11,7 @@ struct ShopView: View {
     @Environment(UserStateService.self) private var userState
     @State private var viewModel = ShopViewModel()
     @State private var selectedCategory: ShopCategory = .all
+    @State private var petProfileManager = PetProfileManager.shared
     @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
@@ -65,6 +66,10 @@ struct ShopView: View {
             viewModel.userState = userState
             // Перезагружаем товары с сервера при появлении
             viewModel.loadItems()
+            AnalyticsService.shared.connect()
+        }
+        .onDisappear {
+            AnalyticsService.shared.disconnect()
         }
         .alert("Покупка", isPresented: $viewModel.showPurchaseAlert) {
             Button("OK", role: .cancel) { }
@@ -178,50 +183,57 @@ struct ShopView: View {
     }
     
     private var myPetCard: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Color.tele2Pink)
-                    .frame(width: 56, height: 56)
-                
-                if tutorialManager.isPetEscaped {
-                    Image(systemName: "questionmark")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.white)
-                } else {
-                    Image(userState.pet.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
+        Button(action: {
+            withAnimation {
+                petProfileManager.showProfileForEditing()
+            }
+        }) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.tele2Pink)
+                        .frame(width: 56, height: 56)
+                    
+                    if tutorialManager.isPetEscaped {
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(.white)
+                    } else {
+                        Image(userState.pet.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                    }
                 }
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Мой Питомец")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
                 
-                Text("Кастомизируй \(petTypeName)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.tele2Gray)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Мой Питомец")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                    
+                    Text("Кастомизируй \(petTypeName)")
+                        .font(.system(size: 14))
+                        .foregroundColor(.tele2Gray)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.tele2Pink)
             }
-            
-            Spacer()
-            
-            Image(systemName: "sparkles")
-                .font(.system(size: 24))
-                .foregroundColor(.tele2Pink)
-        }
-        .padding(20)
-        .background(
-            LinearGradient(
-                colors: [Color.tele2Pink.opacity(0.3), Color.tele2Pink.opacity(0.1)],
-                startPoint: .leading,
-                endPoint: .trailing
+            .padding(20)
+            .background(
+                LinearGradient(
+                    colors: [Color.tele2Pink.opacity(0.3), Color.tele2Pink.opacity(0.1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
             )
-        )
-        .cornerRadius(16)
-        .padding(.horizontal, 16)
+            .cornerRadius(16)
+            .padding(.horizontal, 16)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
     
     /// Отображаемое имя типа питомца
@@ -269,6 +281,7 @@ struct ShopView: View {
                         isSelected: selectedCategory == category
                     ) {
                         selectedCategory = category
+                        AnalyticsService.shared.log(category == .gb ? .gb : category == .min ? .min : .msg)
                     }
                 }
             }
