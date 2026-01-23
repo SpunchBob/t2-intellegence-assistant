@@ -11,6 +11,7 @@ struct CoinsView: View {
     @Environment(UserStateService.self) private var userState
     @State private var viewModel = CoinsViewModel()
     @State private var timeRemaining: TimeInterval = 5 * 3600 + 12 * 60 + 25 // 5ч 12мин 25сек
+    @ObservedObject private var tutorialManager = TutorialManager.shared
 
     // New state for games
     @State private var showTetris = false
@@ -21,24 +22,34 @@ struct CoinsView: View {
             Color.tele2Dark
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Игровая зона
-                    gamingZoneSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Игровая зона
+                        gamingZoneSection
 
-                    // Ежедневные квесты
-                    dailyQuestsSection
+                        // Ежедневные квесты
+                        dailyQuestsSection
 
-                    // Мини-игры
-                    miniGamesSection
+                        // Мини-игры
+                        miniGamesSection
+                    }
+                    .padding(.bottom, 100) // Отступ для таббара
                 }
-                .padding(.bottom, 100) // Отступ для таббара
+                .onChange(of: tutorialManager.shouldScrollToViewId) { _, viewId in
+                    if let viewId = viewId {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            proxy.scrollTo(viewId, anchor: .center)
+                        }
+                    }
+                }
             }
         }
         .navigationBarHidden(true)
         .onAppear {
             viewModel.userState = userState
             startTimer()
+            TutorialManager.shared.startTutorial(.coins)
         }
         .alert("Награда", isPresented: $viewModel.showRewardAlert) {
             Button("OK", role: .cancel) { }

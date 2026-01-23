@@ -14,7 +14,7 @@ struct Pet: Identifiable, Codable {
     var experience: Int
     var iconName: String
     
-    init(id: UUID = UUID(), name: String = "Питомец", level: Int = 1, experience: Int = 0, iconName: String = "pawprint.fill") {
+    init(id: UUID = UUID(), name: String = "Питомец", level: Int = 1, experience: Int = 0, iconName: String = "FoxClassic") {
         self.id = id
         self.name = name
         self.level = level

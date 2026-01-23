@@ -10,9 +10,22 @@
 		0A314D552F222B1400A0EA10 /* T2 Assistent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T2 Assistent.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0A0F96C22F2352B900D9706D /* Exceptions for "T2 Assistent" folder in "T2 Assistent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"T2-Assistent-Info.plist",
+			);
+			target = 0A314D542F222B1400A0EA10 /* T2 Assistent */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0A314D572F222B1400A0EA10 /* T2 Assistent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0A0F96C22F2352B900D9706D /* Exceptions for "T2 Assistent" folder in "T2 Assistent" target */,
+			);
 			path = "T2 Assistent";
 			sourceTree = "<group>";
 		};
@@ -185,6 +198,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -242,6 +256,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -256,6 +271,7 @@
 				DEVELOPMENT_TEAM = NYVBARHQBM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "T2-Assistent-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +304,7 @@
 				DEVELOPMENT_TEAM = NYVBARHQBM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "T2-Assistent-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

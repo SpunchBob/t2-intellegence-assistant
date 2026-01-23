@@ -11,6 +11,7 @@ struct ShopView: View {
     @Environment(UserStateService.self) private var userState
     @State private var viewModel = ShopViewModel()
     @State private var selectedCategory: ShopCategory = .all
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         ZStack {
@@ -21,33 +22,43 @@ struct ShopView: View {
                 ProgressView()
                     .tint(.tele2Pink)
             } else {
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Заголовок
-                        headerSection
-                        
-                        
-                        // Карточка Мой Питомец
-                        myPetCard
-                            .withTutorialSupport(viewId: "myPetCard")
-                        
-                        // Рекомендации
-                        recommendationsSection
-                        
-                        // Акция дня
-                        if let deal = viewModel.dealOfTheDay {
-                            dealOfTheDayCard(deal: deal)
-                        } else {
-                            dealOfTheDaySection
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Заголовок
+                            headerSection
+                            
+                            
+                            // Карточка Мой Питомец
+                            myPetCard
+                                .withTutorialSupport(viewId: "myPetCard")
+                                .id("myPetCard")
+                            
+                            // Рекомендации
+                            recommendationsSection
+                            
+                            // Акция дня
+                            if let deal = viewModel.dealOfTheDay {
+                                dealOfTheDayCard(deal: deal)
+                            } else {
+                                dealOfTheDaySection
+                            }
+                            
+                            // Фильтры
+                            filtersSection
+                            
+                            // Список товаров
+                            itemsGrid
                         }
-                        
-                        // Фильтры
-                        filtersSection
-                        
-                        // Список товаров
-                        itemsGrid
+                        .padding(.bottom, 100) // Отступ для таббара
                     }
-                    .padding(.bottom, 100) // Отступ для таббара
+                    .onChange(of: tutorialManager.shouldScrollToViewId) { _, viewId in
+                        if let viewId = viewId {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                proxy.scrollTo(viewId, anchor: .center)
+                            }
+                        }
+                    }
                 }
             }
         }

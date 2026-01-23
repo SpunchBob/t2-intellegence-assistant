@@ -24,19 +24,3 @@ struct TutorialStep: Identifiable {
     }
 }
 
-/// Конфигурация туториала
-struct TutorialConfig {
-    let steps: [TutorialStep]
-    let overlayColor: Color
-    let highlightColor: Color
-    let cornerRadius: CGFloat
-    let padding: CGFloat
-    
-    static let `default` = TutorialConfig(
-        steps: [],
-        overlayColor: Color.black.opacity(0.7),
-        highlightColor: Color.tele2Pink.opacity(0.3),
-        cornerRadius: 16,
-        padding: 8
-    )
-}

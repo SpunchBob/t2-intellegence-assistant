@@ -177,6 +177,7 @@ class ShopViewModel {
                             
                             self.purchaseMessage = result.message
                             self.showPurchaseAlert = true
+                            
                         }
                     } else {
                         self.purchaseMessage = result.message

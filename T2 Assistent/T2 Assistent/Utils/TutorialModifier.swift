@@ -122,6 +122,7 @@ struct TutorialViewModifier: ViewModifier {
                     tutorialManager.setHighlightedViewFrame(frameToUse, for: viewId)
                 }
             }
+            .id(viewId)
     }
 }
 

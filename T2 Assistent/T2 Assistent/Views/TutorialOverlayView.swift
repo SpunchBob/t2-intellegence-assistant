@@ -9,8 +9,10 @@ import SwiftUI
 
 /// Overlay для отображения туториала
 struct TutorialOverlayView: View {
+    @Environment(UserStateService.self) private var userState
     @ObservedObject var tutorialManager = TutorialManager.shared
     @State private var highlightFrame: CGRect = .zero
+    @State private var showPetGuide: Bool = false
     
     var body: some View {
         if tutorialManager.isTutorialActive,
@@ -21,13 +23,25 @@ struct TutorialOverlayView: View {
                 // Затемненный фон с вырезом для выделенного объекта
                 overlayBackground(highlightFrame: highlightFrame, config: tutorial)
                 
-                // Текст туториала
-                tutorialText(step: step, highlightFrame: highlightFrame)
+                // Питомец + облачко с текстом
+                petGuide(step: step)
                 
                 // Кнопки навигации
                 navigationButtons
             }
             .ignoresSafeArea()
+            .onAppear {
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                    showPetGuide = true
+                }
+            }
+            .onChange(of: tutorialManager.currentStepIndex) { _, _ in
+                // Легкая «переподача» реплики при смене шага
+                showPetGuide = false
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                    showPetGuide = true
+                }
+            }
             .onReceive(tutorialManager.$highlightedViewFrame) { frame in
                 if let frame = frame {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -87,90 +101,34 @@ struct TutorialOverlayView: View {
         }
     }
     
-    /// Текст туториала
-    private func tutorialText(step: TutorialStep, highlightFrame: CGRect) -> some View {
+    private func petGuide(step: TutorialStep) -> some View {
         GeometryReader { geometry in
-            ZStack {
-                if highlightFrame != .zero {
-                    // Позиционируем текст относительно выделенного объекта
-                    let cardPosition = positionForCard(
-                        step: step,
-                        highlightFrame: highlightFrame,
-                        screenSize: geometry.size
-                    )
+            VStack {
+                Spacer()
+                
+                HStack(alignment: .bottom, spacing: 14) {
+                    // Питомец
+                    PetAvatarView(iconName: userState.pet.iconName)
+                        .frame(width: 84, height: 84)
+                        .accessibilityLabel("Питомец")
                     
-                    tutorialCard(step: step)
-                        .position(x: cardPosition.x, y: cardPosition.y)
-                } else {
-                    // Если нет выделенного объекта, показываем по центру
-                    tutorialCard(step: step)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    // Облачко с репликой
+                    SpeechBubble(
+                        title: step.title,
+                        message: step.description
+                    )
+                    .frame(maxWidth: 320, alignment: .leading)
+                    
+                    Spacer(minLength: 0)
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 130) // чтобы не пересекаться с навигационными кнопками
+                .opacity(showPetGuide ? 1 : 0)
+                .scaleEffect(showPetGuide ? 1 : 0.96, anchor: .bottomLeading)
+                .offset(y: showPetGuide ? 0 : 10)
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-    }
-    
-    /// Вычисляет позицию карточки туториала
-    private func positionForCard(
-        step: TutorialStep,
-        highlightFrame: CGRect,
-        screenSize: CGSize
-    ) -> CGPoint {
-        let cardHeight: CGFloat = 150 // Примерная высота карточки
-        let cardWidth: CGFloat = 320
-        let spacing: CGFloat = 20
-        
-        switch step.position {
-        case .top:
-            return CGPoint(
-                x: highlightFrame.midX,
-                y: max(cardHeight / 2 + spacing, highlightFrame.minY - spacing - cardHeight / 2)
-            )
-            
-        case .bottom:
-            return CGPoint(
-                x: highlightFrame.midX,
-                y: min(screenSize.height - cardHeight / 2 - spacing, highlightFrame.maxY + spacing + cardHeight / 2)
-            )
-            
-        case .left:
-            return CGPoint(
-                x: max(cardWidth / 2 + spacing, highlightFrame.minX - spacing - cardWidth / 2),
-                y: highlightFrame.midY
-            )
-            
-        case .right:
-            return CGPoint(
-                x: min(screenSize.width - cardWidth / 2 - spacing, highlightFrame.maxX + spacing + cardWidth / 2),
-                y: highlightFrame.midY
-            )
-            
-        case .center:
-            return CGPoint(x: screenSize.width / 2, y: screenSize.height / 2)
-        }
-    }
-    
-    /// Карточка с текстом туториала
-    private func tutorialCard(step: TutorialStep) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Заголовок
-            Text(step.title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            // Описание
-            Text(step.description)
-                .font(.system(size: 16))
-                .foregroundColor(.white.opacity(0.9))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.tele2DarkSecondary)
-                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
-        )
-        .frame(maxWidth: 320)
     }
     
     /// Кнопки навигации
@@ -235,5 +193,83 @@ struct TutorialOverlayView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
+    }
+}
+
+private struct PetAvatarView: View {
+    let iconName: String
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.tele2Pink)
+                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 6)
+            
+            if let uiImage = UIImage(named: iconName) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(10)
+            } else {
+                Image(systemName: iconName)
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundColor(.orange)
+            }
+        }
+    }
+}
+
+private struct SpeechBubble: View {
+    let title: String
+    let message: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+                .lineLimit(2)
+            
+            Text(message)
+                .font(.system(size: 15))
+                .foregroundColor(.white.opacity(0.92))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .background(
+            SpeechBubbleShape(tailSize: CGSize(width: 18, height: 12), tailOffset: 18)
+                .fill(Color.tele2DarkSecondary)
+                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 6)
+        )
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct SpeechBubbleShape: Shape {
+    var tailSize: CGSize = CGSize(width: 18, height: 12)
+    var tailOffset: CGFloat = 18 // от левого края
+    var cornerRadius: CGFloat = 16
+    
+    func path(in rect: CGRect) -> Path {
+        let tailW = max(8, min(tailSize.width, rect.width * 0.25))
+        let tailH = max(6, min(tailSize.height, rect.height * 0.25))
+        let r = min(cornerRadius, min(rect.width, rect.height) / 2)
+        
+        // Основной прямоугольник пузыря (с местом под хвост снизу)
+        let bubbleRect = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height - tailH)
+        
+        var p = Path(roundedRect: bubbleRect, cornerRadius: r)
+        
+        // Хвост (треугольник) снизу слева
+        let baseX = bubbleRect.minX + max(r + 6, min(bubbleRect.width - r - tailW - 6, tailOffset))
+        let baseY = bubbleRect.maxY
+        
+        p.move(to: CGPoint(x: baseX, y: baseY))
+        p.addLine(to: CGPoint(x: baseX + tailW * 0.55, y: baseY))
+        p.addLine(to: CGPoint(x: baseX + tailW * 0.18, y: baseY + tailH))
+        p.closeSubpath()
+        
+        return p
     }
 }

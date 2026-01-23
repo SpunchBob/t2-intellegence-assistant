@@ -17,6 +17,7 @@ class TutorialManager: ObservableObject {
     @Published var isTutorialActive: Bool = false
     @Published var highlightedViewFrame: CGRect?
     @Published var highlightedViewId: String?
+    @Published var shouldScrollToViewId: String? // Триггер для скролла к элементу
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -84,6 +85,20 @@ class TutorialManager: ObservableObject {
     private func updateHighlightedView() {
         guard let step = currentStep else { return }
         highlightedViewId = step.targetViewId
+        
+        // Триггерим скролл к выделяемому элементу
+        if let viewId = step.targetViewId {
+            // Небольшая задержка для того, чтобы View успел обновиться
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.shouldScrollToViewId = viewId
+                // Сбрасываем триггер после небольшой задержки
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    if self.shouldScrollToViewId == viewId {
+                        self.shouldScrollToViewId = nil
+                    }
+                }
+            }
+        }
     }
     
     /// Установить фрейм для выделенного View
