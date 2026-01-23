@@ -13,7 +13,7 @@ namespace t2Core.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _bestCategotyURL = "http://185.113.139.92:5000/docs";
+        private readonly string _bestCategotyURL = "http://185.113.139.92:5000/recommend/best-category/";
 
         public ProductController(AppDbContext db, IHttpClientFactory httpClientFactory)
         {
@@ -36,7 +36,7 @@ namespace t2Core.Controllers
                 var client = _httpClientFactory.CreateClient();
                 client.Timeout = TimeSpan.FromSeconds(6);
 
-                var requestUrl = $"{_bestCategotyURL}?userId={userId}";  // или POST, если нужно тело
+                var requestUrl = $"{_bestCategotyURL}/{userId}";
 
                 var response = await client.GetAsync(requestUrl);
                 response.EnsureSuccessStatusCode();

@@ -5,7 +5,7 @@ namespace t2Core.Services
 {
     public class DatabaseSeeder
     {
-        public static async Task SeedAsync(AppDbContext db, CancellationToken ct)
+        public static async Task SeedAsync(AppDbContext db, CancellationToken ct = default)
         {
             try {
                 // Если таблицы уже заполнены — ничего не делаем
