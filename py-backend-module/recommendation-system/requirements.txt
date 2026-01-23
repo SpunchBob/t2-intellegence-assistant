@@ -1,0 +1,4 @@
+flask==2.3.3
+flask-restx==1.2.0
+redis==5.0.0
+numpy==1.24.3

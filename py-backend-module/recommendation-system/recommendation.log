@@ -1,0 +1,291 @@
+2026-01-23 08:05:10,952 - __main__ - INFO - Starting Enhanced Recommendation Engine...
+2026-01-23 08:05:10,953 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:10,953 - redis_manager - INFO - RedisManager initialized
+2026-01-23 08:05:10,953 - __main__ - INFO - RedisManager created
+2026-01-23 08:05:10,966 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:10,968 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:10,970 - recommendation_engine - INFO - EnhancedRecommendationSystem initialized
+2026-01-23 08:05:10,970 - __main__ - INFO - EnhancedRecommendationSystem created
+2026-01-23 08:05:10,970 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:10,971 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:10,971 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:10,971 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:10,972 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:10,974 - __main__ - INFO - Server starting on http://0.0.0.0:5000
+2026-01-23 08:05:10,974 - __main__ - INFO - API Documentation: http://0.0.0.0:5000/docs
+2026-01-23 08:05:10,974 - __main__ - INFO - .NET DTO endpoint: /recommend/best-category/{user_id}
+2026-01-23 08:05:10,976 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.18.0.3:5000
+2026-01-23 08:05:10,979 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-23 08:05:27,806 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:27,813 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:27,815 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:27,816 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:27,817 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:27,855 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:27,859 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:27,861 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:27,862 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:27] "GET /docs HTTP/1.1" 200 -
+2026-01-23 08:05:27,950 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:27,958 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:27,962 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:27,965 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:27,968 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:27,975 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:27,978 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:28,004 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:28,005 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:28] "GET /swaggerui/droid-sans.css HTTP/1.1" 200 -
+2026-01-23 08:05:28,056 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:28,068 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:28,075 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:28,082 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:28,083 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:28,084 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:28,085 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:28,087 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:28,089 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:28,090 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:28,092 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:28] "GET /swaggerui/swagger-ui-standalone-preset.js HTTP/1.1" 200 -
+2026-01-23 08:05:28,089 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:28,094 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:28,095 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:28,096 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:28,093 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:28,098 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:28,099 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:28,100 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:28,102 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:28,098 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:28,105 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:28,106 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:28,107 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:28] "GET /swaggerui/swagger-ui.css HTTP/1.1" 200 -
+2026-01-23 08:05:28,104 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:28,109 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:28,110 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:28] "GET /swaggerui/swagger-ui-bundle.js HTTP/1.1" 200 -
+2026-01-23 08:05:28,965 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:28,973 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:28,975 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:28,975 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:28,978 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:29,000 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:29,001 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:29,001 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:29,008 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:29] "GET /swagger.json HTTP/1.1" 200 -
+2026-01-23 08:05:58,420 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:05:58,444 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:05:58,444 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:05:58,446 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:05:58,447 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:05:58,449 - recommendation_engine - INFO - No profile data for user 1, returning fallback
+2026-01-23 08:05:58,451 - recommendation_engine - INFO - Returning fallback recommendations
+2026-01-23 08:05:58,451 - __main__ - INFO - Best category for user 1: chat
+2026-01-23 08:05:58,454 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:05:58,456 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:05:58,457 - __main__ - INFO - Redis connection closed
+2026-01-23 08:05:58,459 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:05:58] "GET /recommend/best-category/1 HTTP/1.1" 200 -
+2026-01-23 08:09:02,795 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:02,813 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:02,814 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:02,814 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:02,814 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:02,821 - __main__ - WARNING - 404 error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-01-23 08:09:02,823 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:02,825 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:02,826 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:02,827 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:09:02] "[33mGET /recommend/best-category/?userId=1 HTTP/1.1[0m" 404 -
+2026-01-23 08:09:18,439 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:18,451 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:18,453 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:18,453 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:18,454 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:18,459 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:18,460 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:18,461 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:18,462 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:18] "GET /docs HTTP/1.1" 200 -
+2026-01-23 08:09:18,582 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:18,589 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:18,595 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:18,599 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:18,606 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:18,598 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:18,621 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:18,630 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:18,632 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:18,650 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:18,651 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:18,651 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:18,655 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:18,660 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:18,664 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:18,669 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:18] "GET /swaggerui/swagger-ui.css HTTP/1.1" 200 -
+2026-01-23 08:09:18,635 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:18,660 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:18,667 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:18,679 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:18,680 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:18,680 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:18,681 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:18,681 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:18,684 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:18,681 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:18,688 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:18,691 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:18,691 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:18] "GET /swaggerui/droid-sans.css HTTP/1.1" 200 -
+2026-01-23 08:09:18,696 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:18,704 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:18,697 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:18,711 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:18,713 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:18,718 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:18] "GET /swaggerui/swagger-ui-standalone-preset.js HTTP/1.1" 200 -
+2026-01-23 08:09:18,706 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:18] "GET /swaggerui/swagger-ui-bundle.js HTTP/1.1" 200 -
+2026-01-23 08:09:19,851 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:19,867 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:19,869 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:19,870 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:19,871 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:19,873 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:19,874 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:19,875 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:19,878 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:09:19] "GET /swagger.json HTTP/1.1" 200 -
+2026-01-23 08:09:21,378 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:09:21,388 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:09:21,391 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:09:21,393 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:09:21,394 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:09:21,395 - __main__ - WARNING - 404 error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-01-23 08:09:21,398 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:09:21,398 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:09:21,399 - __main__ - INFO - Redis connection closed
+2026-01-23 08:09:21,402 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:09:21] "[33mGET /recommend/best-category/?userId=1 HTTP/1.1[0m" 404 -
+2026-01-23 08:12:04,417 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:12:04,449 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:12:04,449 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:12:04,449 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:12:04,453 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:12:04,475 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:12:04,480 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:12:04,483 - __main__ - INFO - Redis connection closed
+2026-01-23 08:12:04,487 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:12:04] "[32mGET /recommend/best-category//1 HTTP/1.1[0m" 308 -
+2026-01-23 08:12:04,654 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:12:04,658 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:12:04,659 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:12:04,660 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:12:04,661 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:12:04,662 - recommendation_engine - INFO - No profile data for user 1, returning fallback
+2026-01-23 08:12:04,663 - recommendation_engine - INFO - Returning fallback recommendations
+2026-01-23 08:12:04,665 - __main__ - INFO - Best category for user 1: chat
+2026-01-23 08:12:04,667 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:12:04,669 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:12:04,670 - __main__ - INFO - Redis connection closed
+2026-01-23 08:12:04,671 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:12:04] "GET /recommend/best-category/1 HTTP/1.1" 200 -
+2026-01-23 08:37:07,609 - __main__ - INFO - Starting Enhanced Recommendation Engine...
+2026-01-23 08:37:07,616 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:07,618 - redis_manager - INFO - RedisManager initialized
+2026-01-23 08:37:07,618 - __main__ - INFO - RedisManager created
+2026-01-23 08:37:07,638 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:07,641 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:07,642 - recommendation_engine - INFO - EnhancedRecommendationSystem initialized with categories: ['gb', 'min', 'msg']
+2026-01-23 08:37:07,643 - __main__ - INFO - EnhancedRecommendationSystem created
+2026-01-23 08:37:07,644 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:07,652 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:07,654 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:07,655 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:07,656 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:07,657 - __main__ - INFO - Server starting on http://0.0.0.0:5000
+2026-01-23 08:37:07,658 - __main__ - INFO - API Documentation: http://0.0.0.0:5000/docs
+2026-01-23 08:37:07,659 - __main__ - INFO - .NET DTO endpoint: /recommend/best-category/{user_id}
+2026-01-23 08:37:07,664 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.18.0.3:5000
+2026-01-23 08:37:07,666 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-23 08:37:22,157 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:22,170 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:22,174 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:22,186 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:22,187 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:22,227 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:22,229 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:22,231 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:22,233 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:22] "GET /docs HTTP/1.1" 200 -
+2026-01-23 08:37:22,330 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:22,348 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:22,360 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:22,362 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:22,368 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:22,374 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:22,376 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:22,371 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:22,377 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:22,383 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:22,395 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:22,398 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:22] "GET /swaggerui/droid-sans.css HTTP/1.1" 200 -
+2026-01-23 08:37:22,412 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:22,414 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:22,417 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:22,420 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:22,431 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:22,429 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:22,431 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:22,440 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:22,441 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:22,441 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:22,443 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:22,443 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:22,443 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:22,445 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:22,446 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:22,449 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:22,448 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:22,452 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:22,453 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:22,455 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:22] "GET /swaggerui/swagger-ui-bundle.js HTTP/1.1" 200 -
+2026-01-23 08:37:22,451 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:22,459 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:22,461 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:22] "GET /swaggerui/swagger-ui.css HTTP/1.1" 200 -
+2026-01-23 08:37:22,462 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:22] "GET /swaggerui/swagger-ui-standalone-preset.js HTTP/1.1" 200 -
+2026-01-23 08:37:23,381 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:23,390 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:23,395 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:23,397 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:23,398 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:23,404 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:23,406 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:23,407 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:23,408 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:23] "GET /swagger.json HTTP/1.1" 200 -
+2026-01-23 08:37:31,889 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:37:31,896 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:37:31,897 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:37:31,898 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:37:31,898 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:37:31,900 - recommendation_engine - INFO - Created new profile for user 1
+2026-01-23 08:37:31,900 - recommendation_engine - INFO - No activity for user 1, returning balanced recommendations
+2026-01-23 08:37:31,901 - recommendation_engine - INFO - Returning balanced recommendations for new user
+2026-01-23 08:37:31,902 - __main__ - INFO - Best category for user 1: msg
+2026-01-23 08:37:31,908 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:37:31,909 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:37:31,911 - __main__ - INFO - Redis connection closed
+2026-01-23 08:37:31,912 - werkzeug - INFO - 176.97.36.219 - - [23/Jan/2026 08:37:31] "GET /recommend/best-category/1 HTTP/1.1" 200 -
+2026-01-23 08:39:01,672 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:39:01,681 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:39:01,682 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:39:01,683 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:39:01,684 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:39:01,687 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:39:01,689 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:39:01,690 - __main__ - INFO - Redis connection closed
+2026-01-23 08:39:01,691 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:39:01] "[32mGET /recommend/best-category//1 HTTP/1.1[0m" 308 -
+2026-01-23 08:39:01,780 - __main__ - INFO - Initializing recommendation system services...
+2026-01-23 08:39:01,787 - redis_manager - INFO - Connected to Redis at redis:6379
+2026-01-23 08:39:01,788 - __main__ - WARNING - Redis connection failed, using fallback mode
+2026-01-23 08:39:01,790 - __main__ - INFO - Recommendation system initialized
+2026-01-23 08:39:01,791 - __main__ - INFO - Recommendation system services initialized successfully
+2026-01-23 08:39:01,792 - recommendation_engine - INFO - No activity for user 1, returning balanced recommendations
+2026-01-23 08:39:01,793 - recommendation_engine - INFO - Returning balanced recommendations for new user
+2026-01-23 08:39:01,794 - __main__ - INFO - Best category for user 1: msg
+2026-01-23 08:39:01,796 - __main__ - INFO - Shutting down recommendation system services...
+2026-01-23 08:39:01,797 - redis_manager - INFO - Redis connection closed
+2026-01-23 08:39:01,798 - __main__ - INFO - Redis connection closed
+2026-01-23 08:39:01,799 - werkzeug - INFO - 5.39.250.179 - - [23/Jan/2026 08:39:01] "GET /recommend/best-category/1 HTTP/1.1" 200 -

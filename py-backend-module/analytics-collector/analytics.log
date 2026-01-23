@@ -1,0 +1,133 @@
+2026-01-22 21:44:14,137 - manager - INFO - ConnectionManager initialized
+2026-01-22 21:44:14,140 - processor - INFO - ActionProcessor initialized
+2026-01-22 21:44:14,176 - app - INFO - Starting Analytics Collector...
+2026-01-22 21:44:14,446 - manager - INFO - [2026-01-22 21:44:14.446653] Redis подключен успешно
+2026-01-22 21:44:14,449 - app - INFO - [2026-01-22 21:44:14.449133] Analytics Collector успешно запущен
+2026-01-22 21:45:35,320 - app - INFO - Shutting down Analytics Collector...
+2026-01-22 21:45:35,338 - manager - INFO - Redis connection closed
+2026-01-22 21:45:35,339 - app - INFO - [2026-01-22 21:45:35.339321] Analytics Collector успешно остановлен
+2026-01-22 21:54:13,366 - manager - INFO - ConnectionManager initialized
+2026-01-22 21:54:13,374 - processor - INFO - ActionProcessor initialized
+2026-01-22 21:54:13,390 - app - INFO - Starting Analytics Collector...
+2026-01-22 21:54:13,483 - manager - INFO - [2026-01-22 21:54:13.482950] Redis подключен успешно
+2026-01-22 21:54:13,485 - app - INFO - [2026-01-22 21:54:13.484921] Analytics Collector успешно запущен
+2026-01-22 21:55:38,071 - app - INFO - Shutting down Analytics Collector...
+2026-01-22 21:55:38,079 - manager - INFO - Redis connection closed
+2026-01-22 21:55:38,080 - app - INFO - [2026-01-22 21:55:38.080873] Analytics Collector успешно остановлен
+2026-01-22 22:01:27,876 - manager - INFO - ConnectionManager initialized
+2026-01-22 22:01:27,878 - processor - INFO - ActionProcessor initialized
+2026-01-22 22:01:27,888 - app - INFO - Starting Analytics Collector...
+2026-01-22 22:01:27,912 - manager - INFO - [2026-01-22 22:01:27.912756] Redis подключен успешно
+2026-01-22 22:01:27,914 - app - INFO - [2026-01-22 22:01:27.914552] Analytics Collector успешно запущен
+2026-01-22 22:08:48,495 - app - INFO - Shutting down Analytics Collector...
+2026-01-22 22:08:48,503 - manager - INFO - Redis connection closed
+2026-01-22 22:08:48,504 - app - INFO - [2026-01-22 22:08:48.504479] Analytics Collector успешно остановлен
+2026-01-22 22:23:17,495 - manager - INFO - ConnectionManager initialized
+2026-01-22 22:23:17,498 - processor - INFO - ActionProcessor initialized
+2026-01-22 22:23:17,505 - app - INFO - Starting Analytics Collector...
+2026-01-22 22:23:17,517 - manager - INFO - [2026-01-22 22:23:17.517798] Redis подключен успешно
+2026-01-22 22:23:17,519 - app - INFO - [2026-01-22 22:23:17.519905] Analytics Collector успешно запущен
+2026-01-22 22:33:55,763 - routes - INFO - Stats retrieved for user 1
+2026-01-23 03:34:09,282 - routes - INFO - Stats retrieved for user 1
+2026-01-23 06:50:59,941 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 06:50:59,951 - manager - INFO - Redis connection closed
+2026-01-23 06:50:59,952 - app - INFO - [2026-01-23 06:50:59.952825] Analytics Collector успешно остановлен
+2026-01-23 06:51:34,897 - manager - INFO - ConnectionManager initialized
+2026-01-23 06:51:34,905 - processor - INFO - ActionProcessor initialized
+2026-01-23 06:51:34,915 - app - INFO - Starting Analytics Collector...
+2026-01-23 06:51:34,929 - manager - INFO - [2026-01-23 06:51:34.929372] Redis подключен успешно
+2026-01-23 06:51:34,931 - app - INFO - [2026-01-23 06:51:34.931566] Analytics Collector успешно запущен
+2026-01-23 06:57:57,786 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 06:57:57,802 - manager - INFO - Redis connection closed
+2026-01-23 06:57:57,802 - app - INFO - [2026-01-23 06:57:57.802576] Analytics Collector успешно остановлен
+2026-01-23 07:15:37,024 - manager - INFO - ConnectionManager initialized
+2026-01-23 07:15:37,026 - processor - INFO - ActionProcessor initialized
+2026-01-23 07:15:37,036 - app - INFO - Starting Analytics Collector...
+2026-01-23 07:15:37,119 - manager - INFO - [2026-01-23 07:15:37.119047] Redis подключен успешно
+2026-01-23 07:15:37,122 - app - INFO - [2026-01-23 07:15:37.122603] Analytics Collector успешно запущен
+2026-01-23 07:17:00,790 - manager - INFO - Client connected: 1
+2026-01-23 07:17:00,791 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:17:20,109 - processor - ERROR - Failed to store action in Redis for user 1: 'Pipeline' object does not support the context manager protocol
+2026-01-23 07:17:20,116 - processor - ERROR - Failed to process action for user 1: 'Pipeline' object does not support the context manager protocol
+2026-01-23 07:17:20,118 - routes - ERROR - Processing error for client 1: 'Pipeline' object does not support the context manager protocol
+Traceback (most recent call last):
+  File "/app/routes.py", line 51, in websocket_endpoint
+    await _processor_obj.process_action(action, _manager_obj)
+  File "/app/processor.py", line 39, in process_action
+    await self._store_in_redis(user_id, action, manager)
+  File "/app/processor.py", line 54, in _store_in_redis
+    with manager.redis_client.pipeline() as pipe:
+TypeError: 'Pipeline' object does not support the context manager protocol
+2026-01-23 07:17:27,076 - manager - INFO - Client disconnected: 1
+2026-01-23 07:17:27,083 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:17:31,456 - manager - INFO - Client connected: 1
+2026-01-23 07:17:31,461 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:17:31,916 - manager - INFO - Client disconnected: 1
+2026-01-23 07:17:31,917 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:17:38,344 - manager - INFO - Client connected: 1
+2026-01-23 07:17:38,345 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:17:53,944 - manager - INFO - Client disconnected: 1
+2026-01-23 07:17:53,948 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:21:31,149 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 07:21:31,157 - manager - INFO - Redis connection closed
+2026-01-23 07:21:31,159 - app - INFO - [2026-01-23 07:21:31.159299] Analytics Collector успешно остановлен
+2026-01-23 07:28:16,093 - manager - INFO - ConnectionManager initialized
+2026-01-23 07:28:16,101 - processor - INFO - ActionProcessor initialized
+2026-01-23 07:28:16,114 - app - INFO - Starting Analytics Collector...
+2026-01-23 07:28:16,166 - manager - INFO - [2026-01-23 07:28:16.166216] Redis подключен успешно
+2026-01-23 07:28:16,168 - app - INFO - [2026-01-23 07:28:16.168003] Analytics Collector успешно запущен
+2026-01-23 07:28:35,955 - manager - INFO - Client connected: 1
+2026-01-23 07:28:35,955 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:28:37,477 - manager - INFO - Client disconnected: 1
+2026-01-23 07:28:37,479 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:28:40,361 - manager - INFO - Client connected: 1
+2026-01-23 07:28:40,362 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:29:12,616 - manager - INFO - Client disconnected: 1
+2026-01-23 07:29:12,624 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:29:29,505 - manager - INFO - Client connected: 1
+2026-01-23 07:29:29,506 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:31:27,527 - manager - INFO - Client disconnected: 1
+2026-01-23 07:31:27,534 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:31:29,649 - manager - INFO - Client connected: 1
+2026-01-23 07:31:29,651 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:32:09,672 - manager - INFO - Client disconnected: 1
+2026-01-23 07:32:09,684 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:32:11,065 - manager - INFO - Client connected: 1
+2026-01-23 07:32:11,068 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:32:17,660 - manager - INFO - Client disconnected: 1
+2026-01-23 07:32:17,662 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:32:19,766 - manager - INFO - Client connected: 1
+2026-01-23 07:32:19,768 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:32:26,384 - manager - INFO - Client disconnected: 1
+2026-01-23 07:32:26,387 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:38:35,288 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 07:38:35,293 - manager - INFO - Redis connection closed
+2026-01-23 07:38:35,294 - app - INFO - [2026-01-23 07:38:35.294378] Analytics Collector успешно остановлен
+2026-01-23 07:58:35,161 - manager - INFO - ConnectionManager initialized
+2026-01-23 07:58:35,163 - processor - INFO - ActionProcessor initialized
+2026-01-23 07:58:35,180 - app - INFO - Starting Analytics Collector...
+2026-01-23 07:58:35,198 - manager - INFO - [2026-01-23 07:58:35.198753] Redis подключен успешно
+2026-01-23 07:58:35,201 - app - INFO - [2026-01-23 07:58:35.200953] Analytics Collector успешно запущен
+2026-01-23 07:58:35,631 - manager - INFO - Client connected: 1
+2026-01-23 07:58:35,649 - routes - INFO - WebSocket client connected: 1
+2026-01-23 07:58:46,478 - manager - INFO - Client disconnected: 1
+2026-01-23 07:58:46,483 - routes - INFO - WebSocket client disconnected: 1
+2026-01-23 07:58:46,578 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 07:58:46,581 - manager - INFO - Redis connection closed
+2026-01-23 07:58:46,582 - app - INFO - [2026-01-23 07:58:46.582009] Analytics Collector успешно остановлен
+2026-01-23 08:05:12,701 - manager - INFO - ConnectionManager initialized
+2026-01-23 08:05:12,703 - processor - INFO - ActionProcessor initialized
+2026-01-23 08:05:12,708 - app - INFO - Starting Analytics Collector...
+2026-01-23 08:05:12,718 - manager - INFO - [2026-01-23 08:05:12.718773] Redis подключен успешно
+2026-01-23 08:05:12,720 - app - INFO - [2026-01-23 08:05:12.720867] Analytics Collector успешно запущен
+2026-01-23 08:20:57,335 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 08:20:57,347 - manager - INFO - Redis connection closed
+2026-01-23 08:20:57,351 - app - INFO - [2026-01-23 08:20:57.351277] Analytics Collector успешно остановлен
+2026-01-23 08:37:09,908 - manager - INFO - ConnectionManager initialized
+2026-01-23 08:37:09,910 - processor - INFO - ActionProcessor initialized
+2026-01-23 08:37:09,920 - app - INFO - Starting Analytics Collector...
+2026-01-23 08:37:09,934 - manager - INFO - [2026-01-23 08:37:09.934093] Redis подключен успешно
+2026-01-23 08:37:09,936 - app - INFO - [2026-01-23 08:37:09.936647] Analytics Collector успешно запущен
+2026-01-23 08:41:39,734 - app - INFO - Shutting down Analytics Collector...
+2026-01-23 08:41:39,739 - manager - INFO - Redis connection closed
+2026-01-23 08:41:39,741 - app - INFO - [2026-01-23 08:41:39.741130] Analytics Collector успешно остановлен
