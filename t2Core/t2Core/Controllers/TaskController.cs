@@ -24,27 +24,29 @@ namespace t2Core.Controllers
             try
             {
                 if (userId < 1)
-                    return BadRequest("Valid userId is required!");
+                    return BadRequest("Valid positive userId required");
 
                 var userResult = await UserExistence.EnsureUserExistsAsync(userId, _db);
                 if (!userResult.Success)
                     return StatusCode(500, userResult.ErrorMessage ?? "Failed to initialize user");
 
+                var completedTaskIds = await _db.UserTasks
+                    .Where(ut => ut.UserId == userId && ut.IsCompleted)
+                    .Select(ut => ut.TaskId)
+                    .ToListAsync(ct);
+
                 var tasks = await _db.PaidTasks
-                 .GroupJoin(_db.UserTasks.Where(ut => ut.UserId == userId && !ut.IsCompleted),
-                     t => t.Id,
-                     ut => ut.TaskId,
-                     (t, utGroup) => new { Task = t, UserTask = utGroup.FirstOrDefault() })
-                 .Where(joined => joined.UserTask == null || !joined.UserTask.IsCompleted)
-                 .Select(joined => new TaskDTO
-                 {
-                     Id = joined.Task.Id,
-                     Name = joined.Task.Name,
-                     Description = joined.Task.Description,
-                     Reward = joined.Task.Reward,
-                     IsCompleted = false
-                 })
-                 .ToListAsync(ct);
+                    .AsNoTracking()
+                    .Where(t => !completedTaskIds.Contains(t.Id))  // ← главное исправление
+                    .Select(t => new TaskDTO
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        Description = t.Description,
+                        Reward = t.Reward,
+                        IsCompleted = false
+                    })
+                    .ToListAsync(ct);
 
                 return Ok(tasks);
             }

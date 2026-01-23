@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using t2Core.DTOs;
 using t2Core.Services;
-using t2Core.Models;
+
 
 namespace t2Core.Controllers
 {
@@ -73,14 +73,10 @@ namespace t2Core.Controllers
                     Sale = 10
                 });
             }
-            catch (HttpRequestException ex) when (ex.InnerException is TimeoutException)
-            {
-                return StatusCode(504, "External service timeout");
-            }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
                 // Логировать в продакшене
-                return StatusCode(502, $"External service unavailable: {ex.Message}");
+                return StatusCode(502, $"External service unavailable:");
             }
             catch (JsonException)
             {
