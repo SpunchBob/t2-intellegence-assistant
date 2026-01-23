@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<PaidTask> PaidTasks { get; set; }
     public DbSet<UserTask> UserTasks { get; set; }
+    public DbSet<Pet> Pets { get; set; }
     public DbSet<Purchase> Purchases { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -66,6 +67,12 @@ public class AppDbContext : DbContext
             .HasOne(p => p.User)
             .WithMany(u => u.Purchases)        // ← добавь в User
             .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Pet>()
+            .HasOne(p => p.User)
+            .WithOne(u => u.Pet)
+            .HasForeignKey<Pet>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Product → Purchase (1 : много)
