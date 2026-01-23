@@ -9,7 +9,7 @@ namespace t2Core.Models
 
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public decimal Reward { get; set; }        
+        public decimal Reward { get; set; } 
         public ICollection<UserTask> UserTasks { get; set; } = new List<UserTask>();
     }
 }
