@@ -85,6 +85,9 @@ struct MainTabView: View {
                     .environment(userState)
                 Spacer()
             }
+            
+            // Система туториалов - самый передний слой
+            TutorialOverlayView()
         }
         .environment(userState)
     }

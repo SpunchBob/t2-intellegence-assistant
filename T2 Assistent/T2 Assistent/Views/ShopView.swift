@@ -26,8 +26,10 @@ struct ShopView: View {
                         // Заголовок
                         headerSection
                         
+                        
                         // Карточка Мой Питомец
                         myPetCard
+                            .withTutorialSupport(viewId: "myPetCard")
                         
                         // Рекомендации
                         recommendationsSection
@@ -52,6 +54,7 @@ struct ShopView: View {
         .navigationBarHidden(true)
         .onAppear {
             viewModel.userState = userState
+            TutorialManager.shared.startTutorial(.shopTutorial)
         }
         .alert("Покупка", isPresented: $viewModel.showPurchaseAlert) {
             Button("OK", role: .cancel) { }

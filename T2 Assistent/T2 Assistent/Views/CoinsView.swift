@@ -39,6 +39,7 @@ struct CoinsView: View {
         .onAppear {
             viewModel.userState = userState
             startTimer()
+            TutorialManager.shared.startTutorial(.coins)
         }
         .alert("Награда", isPresented: $viewModel.showRewardAlert) {
             Button("OK", role: .cancel) { }
@@ -87,6 +88,7 @@ struct CoinsView: View {
                         )
                         .offset(x: 4, y: -4)
                 }
+                
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Макс помогает в играх!")
@@ -109,6 +111,7 @@ struct CoinsView: View {
             .padding(20)
             .background(Color.tele2DarkSecondary)
             .cornerRadius(16)
+            .withTutorialSupport(viewId: "123")
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
