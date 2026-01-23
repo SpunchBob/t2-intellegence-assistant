@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  gigachat:
+    build: .
+    container_name: gigachat-container
+    environment:
+      - GIGACHAT_CLIENT_ID=${GIGACHAT_CLIENT_ID}
+      - GIGACHAT_CLIENT_SECRET=${GIGACHAT_CLIENT_SECRET}
+    env_file:
+      - .env
+    volumes:
+      - .:/app  # Монтируем текущую папку для разработки
+    stdin_open: true  # Для интерактивного ввода
+    tty: true         # Для цветного вывода
+    command: python examples/example_chat.pyversion: '3.8'
+
+services:
+  gigachat:
+    build: .
+    container_name: gigachat-container
+    environment:
+      - GIGACHAT_CLIENT_ID=${GIGACHAT_CLIENT_ID}
+      - GIGACHAT_CLIENT_SECRET=${GIGACHAT_CLIENT_SECRET}
+    env_file:
+      - .env
+    volumes:
+      - .:/app  # Монтируем текущую папку для разработки
+    stdin_open: true  # Для интерактивного ввода
+    tty: true         # Для цветного вывода
+    command: python examples/example_chat.py
