@@ -51,9 +51,16 @@ struct TopBarView: View {
                             .fill(Color.tele2Pink)
                             .frame(width: 32, height: 32)
                         
-                        Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
+                        if tutorialManager.isPetEscaped {
+                            Image(systemName: "questionmark")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                        } else {
+                            Image(userState.pet.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                        }
                     }
                     
                     // Уведомление

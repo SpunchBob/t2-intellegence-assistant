@@ -35,7 +35,8 @@ struct ChatView: View {
                                     MessageBubble(
                                         message: message,
                                         showShopButton: index == 0 && viewModel.hasShopButton,
-                                        isPetEscaped: tutorialManager.isPetEscaped
+                                        isPetEscaped: tutorialManager.isPetEscaped,
+                                        petIconName: userState.pet.iconName
                                     )
                                     .id(message.id)
                                 }
@@ -165,15 +166,23 @@ struct MessageBubble: View {
     let message: ChatMessage
     let showShopButton: Bool
     let isPetEscaped: Bool
+    var petIconName: String = "FoxClassic"
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             // Левая сторона - для сообщений ассистента
             if !message.isUser {
-                Image(systemName: isPetEscaped ? "questionmark" : "face.smiling")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 24, height: 24)
+                if isPetEscaped {
+                    Image(systemName: "questionmark")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 24, height: 24)
+                } else {
+                    Image(petIconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                }
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(message.content)

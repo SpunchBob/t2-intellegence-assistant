@@ -75,7 +75,7 @@ struct CoinsView: View {
                 .font(.system(size: 16))
                 .foregroundColor(.tele2Gray)
 
-            // Карточка Макса
+            // Карточка питомца
             HStack(spacing: 16) {
                 ZStack(alignment: .topTrailing) {
                     ZStack {
@@ -83,9 +83,16 @@ struct CoinsView: View {
                             .fill(Color.tele2Pink)
                             .frame(width: 48, height: 48)
 
-                            Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
+                        if tutorialManager.isPetEscaped {
+                            Image(systemName: "questionmark")
                                 .font(.system(size: 24, weight: .semibold))
-                                .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
+                                .foregroundColor(.white)
+                        } else {
+                            Image(userState.pet.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 36, height: 36)
+                        }
                     }
 
                     // Уведомление
@@ -102,7 +109,7 @@ struct CoinsView: View {
                 
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Макс помогает в играх!")
+                    Text("\(petTypeName) помогает в играх!")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.tele2Pink)
 
@@ -217,7 +224,11 @@ struct CoinsView: View {
                 GridItem(.flexible())
             ], spacing: 16) {
                 ForEach(viewModel.miniGames) { game in
-                    MiniGameCardNew(game: game) {
+                    MiniGameCardNew(
+                        game: game,
+                        petIconName: userState.pet.iconName,
+                        petTypeName: petTypeName
+                    ) {
                         // Use local handler: if special games then open local views, otherwise delegate to VM
                         if game.name == "Тетрис" {
                             showTetris = true
@@ -230,11 +241,19 @@ struct CoinsView: View {
                 }
 
                 // Additional explicit cards for Tetris and Snake in case viewModel doesn't include them
-                MiniGameCardNew(game: MiniGame(name: "Тетрис", description: "", iconName: "square.grid.3x3.fill", maxReward: 100, bonusFromMax: 10, color: "pink")) {
+                MiniGameCardNew(
+                    game: MiniGame(name: "Тетрис", description: "", iconName: "square.grid.3x3.fill", maxReward: 100, bonusFromMax: 10, color: "pink"),
+                    petIconName: userState.pet.iconName,
+                    petTypeName: petTypeName
+                ) {
                     showTetris = true
                 }
 
-                MiniGameCardNew(game: MiniGame(name: "Змейка", description: "", iconName: "hare.fill", maxReward: 80, bonusFromMax: 8, color: "pink")) {
+                MiniGameCardNew(
+                    game: MiniGame(name: "Змейка", description: "", iconName: "hare.fill", maxReward: 80, bonusFromMax: 8, color: "pink"),
+                    petIconName: userState.pet.iconName,
+                    petTypeName: petTypeName
+                ) {
                     showSnake = true
                 }
             }
@@ -244,6 +263,17 @@ struct CoinsView: View {
 
     private var completedQuestsCount: Int {
         viewModel.quests.filter { $0.isCompleted }.count
+    }
+    
+    /// Отображаемое имя типа питомца
+    private var petTypeName: String {
+        switch userState.pet.type.lowercased() {
+        case "dragon": return "Дракон"
+        case "fox": return "Лис"
+        case "cat": return "Кот"
+        case "dog": return "Собака"
+        default: return userState.pet.type.capitalized
+        }
     }
 
     private func timeString(from timeInterval: TimeInterval) -> String {
@@ -318,6 +348,8 @@ struct QuestRowCard: View {
 
 struct MiniGameCardNew: View {
     let game: MiniGame
+    var petIconName: String = "FoxClassic"
+    var petTypeName: String = "питомца"
     let onPlay: () -> Void
 
     var iconColor: Color {
@@ -340,15 +372,22 @@ struct MiniGameCardNew: View {
 
                 Spacer()
 
-                // Иконка лисы
+                // Иконка питомца
                 ZStack {
                     Circle()
                         .fill(Color.tele2Pink)
                         .frame(width: 24, height: 24)
 
-                    Image(systemName: TutorialManager.shared.isPetEscaped ? "questionmark" : "face.smiling")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(TutorialManager.shared.isPetEscaped ? .white : .orange)
+                    if TutorialManager.shared.isPetEscaped {
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    } else {
+                        Image(petIconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                    }
                 }
             }
 
@@ -362,7 +401,7 @@ struct MiniGameCardNew: View {
                     .foregroundColor(iconColor)
             }
 
-            Text("+\(game.bonusFromMax) бонус от Макс")
+            Text("+\(game.bonusFromMax) бонус от \(petTypeName)")
                 .font(.system(size: 12))
                 .foregroundColor(Color(red: 0.0, green: 0.7, blue: 1.0))
         }

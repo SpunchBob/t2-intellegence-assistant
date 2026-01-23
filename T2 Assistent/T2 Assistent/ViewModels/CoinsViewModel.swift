@@ -159,9 +159,11 @@ class CoinsViewModel {
                         // Перезагружаем баланс для синхронизации
                         Task {
                             await userState.loadBalance()
+                            userState.addCoinsLocally(quest.reward / 2)
                         }
                         
-                        userState.addExperience(quest.reward / 2)
+                        
+                        
                         self.rewardMessage = "Выполнен квест: \(quest.title)! Получено \(quest.reward) койнов."
                         self.showRewardAlert = true
                     }
@@ -173,7 +175,6 @@ class CoinsViewModel {
                         self.quests[index].isCompleted = true
                         self.quests[index].progress = self.quests[index].maxProgress
                         userState.addCoinsLocally(quest.reward)
-                        userState.addExperience(quest.reward / 2)
                         self.rewardMessage = "Выполнен квест: \(quest.title)! Получено \(quest.reward) койнов."
                         self.showRewardAlert = true
                     }
@@ -197,7 +198,6 @@ class CoinsViewModel {
             // Для других игр - имитация
             guard let userState = userState else { return }
             userState.addCoinsLocally(game.reward)
-            userState.addExperience(game.reward / 2)
             rewardMessage = "Вы прошли игру \(game.name)! Получено \(game.reward) койнов."
             showRewardAlert = true
         }

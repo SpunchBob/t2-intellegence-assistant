@@ -23,11 +23,13 @@ class UserStateService {
     // Состояния загрузки
     var authState: LoadingState = .idle
     var balanceState: LoadingState = .idle
+    var petState: LoadingState = .idle
     var isInitialized: Bool = false
     
     // Сервисы
     private let authService = AuthService.shared
     private let coinService = CoinService.shared
+    private let petService = PetService.shared
     
     // Текущий userId
     var userId: Int? {
@@ -40,7 +42,7 @@ class UserStateService {
     
     init() {
         // Инициализация с начальными значениями
-        self.pet = Pet(name: "Макс", level: 1, experience: 0)
+        self.pet = Pet()
         self.coin = Coin(amount: 0)
     }
     
@@ -54,8 +56,11 @@ class UserStateService {
             _ = try await authService.autoLogin()
             authState = .loaded
             
-            // 2. Загрузка баланса
-            await loadBalance()
+            // 2. Загрузка баланса и питомца параллельно
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.loadBalance() }
+                group.addTask { await self.loadPet() }
+            }
             
             isInitialized = true
         } catch {
@@ -75,6 +80,60 @@ class UserStateService {
         } catch {
             balanceState = .error(error.localizedDescription)
             print("Ошибка загрузки баланса: \(error)")
+        }
+    }
+    
+    /// Загрузка питомца с сервера
+    func loadPet() async {
+        petState = .loading
+        
+        do {
+            let loadedPet = try await petService.loadPet()
+            self.pet = loadedPet
+            petState = .loaded
+        } catch {
+            petState = .error(error.localizedDescription)
+            print("Ошибка загрузки питомца: \(error)")
+        }
+    }
+    
+    /// Обновление питомца
+    func updatePet(_ pet: Pet) async {
+        do {
+            try await petService.updatePet(pet)
+            self.pet = pet
+        } catch {
+            print("Ошибка обновления питомца: \(error)")
+        }
+    }
+    
+    /// Обновление типа питомца
+    func updatePetType(_ newType: String) async {
+        do {
+            let updatedPet = try await petService.updatePetType(pet, newType: newType)
+            self.pet = updatedPet
+        } catch {
+            print("Ошибка обновления типа питомца: \(error)")
+        }
+    }
+    
+    /// Обновление короны питомца
+    func updatePetCrown(_ newCrown: String) async {
+        do {
+            let updatedPet = try await petService.updatePetCrown(pet, newCrown: newCrown)
+            self.pet = updatedPet
+        } catch {
+            print("Ошибка обновления короны питомца: \(error)")
+        }
+    }
+    
+    /// Обновление локации питомца
+    func updatePetLocation(_ newLocation: String) async {
+        do {
+            let updatedPet = try await petService.updatePetLocation(pet, newLocation: newLocation)
+            self.pet = updatedPet
+        } catch {
+            print("Ошибка обновления локации питомца: \(error)")
         }
     }
     
@@ -119,21 +178,14 @@ class UserStateService {
         coin.amount = newBalance
     }
     
-    func addExperience(_ amount: Int) {
-        pet.experience += amount
-        // Проверка на повышение уровня (каждые 100 опыта = новый уровень)
-        let newLevel = (pet.experience / 100) + 1
-        if newLevel > pet.level {
-            pet.level = newLevel
-        }
-    }
-    
     /// Выход из аккаунта
     func logout() {
         authService.logout()
         isInitialized = false
         authState = .idle
         balanceState = .idle
+        petState = .idle
         coin = Coin(amount: 0)
+        pet = Pet()
     }
 }

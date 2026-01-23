@@ -179,16 +179,29 @@ struct ShopView: View {
     
     private var myPetCard: some View {
         HStack(spacing: 16) {
-            Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
-                .font(.system(size: 40, weight: .semibold))
-                .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
+            ZStack {
+                Circle()
+                    .fill(Color.tele2Pink)
+                    .frame(width: 56, height: 56)
+                
+                if tutorialManager.isPetEscaped {
+                    Image(systemName: "questionmark")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                } else {
+                    Image(userState.pet.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
+                }
+            }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Мой Питомец")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
                 
-                Text("Кастомизируй Макс")
+                Text("Кастомизируй \(petTypeName)")
                     .font(.system(size: 14))
                     .foregroundColor(.tele2Gray)
             }
@@ -209,6 +222,17 @@ struct ShopView: View {
         )
         .cornerRadius(16)
         .padding(.horizontal, 16)
+    }
+    
+    /// Отображаемое имя типа питомца
+    private var petTypeName: String {
+        switch userState.pet.type.lowercased() {
+        case "dragon": return "Дракона"
+        case "fox": return "Лиса"
+        case "cat": return "Кота"
+        case "dog": return "Собаку"
+        default: return userState.pet.type.capitalized
+        }
     }
     
     private var recommendationsSection: some View {

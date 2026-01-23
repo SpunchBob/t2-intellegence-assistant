@@ -12,57 +12,70 @@ class PetService {
     static let shared = PetService()
     
     private let networkService = NetworkService.shared
+    private let authService = AuthService.shared
     
     private init() {}
     
-    // Загрузка данных питомца с сервера
-    func loadPet() async throws -> Pet {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Pet>(endpoint: "/api/v1/pet")
-        
-        // Временная заглушка для демонстрации
-        try await Task.sleep(nanoseconds: 500_000_000) // Имитация задержки сети
-        
-        // В реальном приложении здесь будет:
-        // let response: PetResponse = try await networkService.request(
-        //     endpoint: "/api/v1/pet",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        // return response.pet
-        
-        return Pet(name: "Макс", level: 1, experience: 0)
+    /// Получить userId для запросов
+    private func getUserId() throws -> Int {
+        guard let userId = authService.currentUserId else {
+            throw NetworkError.notFound
+        }
+        return userId
     }
     
-    // Обновление данных питомца на сервере
-    func updatePet(_ pet: Pet) async throws -> Pet {
-        // TODO: Замените на реальный endpoint
-        // let body = [
-        //     "name": pet.name,
-        //     "level": pet.level,
-        //     "experience": pet.experience
-        // ]
-        // return try await networkService.request<Pet>(
-        //     endpoint: "/api/v1/pet",
-        //     method: "PUT",
-        //     body: body,
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+    /// Получение информации о питомце
+    /// GET /api/Pet/getPet/{userId}
+    func loadPet() async throws -> Pet {
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 300_000_000)
+        let pet: Pet = try await networkService.request(
+            endpoint: "/api/Pet/getPet/\(userId)"
+        )
+        
         return pet
     }
     
-    // Добавление опыта питомцу
-    func addExperience(_ amount: Int) async throws -> Pet {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Pet>(
-        //     endpoint: "/api/v1/pet/experience",
-        //     method: "POST",
-        //     body: ["amount": amount],
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+    /// Обновление данных питомца на сервере
+    /// PUT /api/Pet/updatePet/{userId}
+    func updatePet(_ pet: Pet) async throws {
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return Pet(name: "Макс", level: 1, experience: amount)
+        let body: [String: Any] = [
+            "id": pet.id,
+            "type": pet.type,
+            "location": pet.location,
+            "crown": pet.crown
+        ]
+        
+        try await networkService.requestVoid(
+            endpoint: "/api/Pet/updatePet/\(userId)",
+            method: "PUT",
+            body: body
+        )
+    }
+    
+    /// Обновление типа питомца
+    func updatePetType(_ pet: Pet, newType: String) async throws -> Pet {
+        var updatedPet = pet
+        updatedPet.type = newType
+        try await updatePet(updatedPet)
+        return updatedPet
+    }
+    
+    /// Обновление короны питомца
+    func updatePetCrown(_ pet: Pet, newCrown: String) async throws -> Pet {
+        var updatedPet = pet
+        updatedPet.crown = newCrown
+        try await updatePet(updatedPet)
+        return updatedPet
+    }
+    
+    /// Обновление локации питомца
+    func updatePetLocation(_ pet: Pet, newLocation: String) async throws -> Pet {
+        var updatedPet = pet
+        updatedPet.location = newLocation
+        try await updatePet(updatedPet)
+        return updatedPet
     }
 }
