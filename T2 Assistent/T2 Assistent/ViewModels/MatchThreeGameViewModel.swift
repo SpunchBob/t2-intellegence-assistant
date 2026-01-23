@@ -253,6 +253,6 @@ class MatchThreeGameViewModel {
     
     private func awardReward() {
         guard let userState = userState else { return }
-        userState.addCoins(reward)
+        //userState.addCoins(reward)
     }
 }

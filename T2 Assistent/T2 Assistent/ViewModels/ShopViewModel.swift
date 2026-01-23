@@ -67,7 +67,7 @@ class ShopViewModel {
                 price: 105,
                 originalPrice: 150,
                 iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
+                category: .gb,
                 isRecommended: true
             ),
             ShopItem(
@@ -75,7 +75,7 @@ class ShopViewModel {
                 description: "",
                 price: 600,
                 iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
+                category: .gb,
                 isRecommended: true
             )
         ]
@@ -88,7 +88,7 @@ class ShopViewModel {
                 price: 105,
                 originalPrice: 150,
                 iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
+                category: .gb,
                 isRecommended: true,
                 isDealOfTheDay: true
             ),
@@ -97,7 +97,7 @@ class ShopViewModel {
                 description: "Большой пакет интернета",
                 price: 600,
                 iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
+                category: .gb,
                 isRecommended: true
             ),
             ShopItem(
@@ -105,42 +105,42 @@ class ShopViewModel {
                 description: "Звонки на все номера",
                 price: 200,
                 iconName: "phone.fill",
-                category: .minutes
+                category: .min
             ),
             ShopItem(
-                name: "Скидка 10%",
-                description: "Скидка на следующий платеж",
+                name: "Пакет сообщений",
+                description: "100 сообщений",
                 price: 500,
                 iconName: "percent",
-                category: .discounts
+                category: .msg
             ),
             ShopItem(
-                name: "Скидка 20%",
-                description: "Большая скидка на тариф",
+                name: "Пакет сообщений",
+                description: "200 сообщений",
                 price: 800,
                 iconName: "tag.fill",
-                category: .discounts
+                category: .msg
             ),
             ShopItem(
-                name: "Премиум статус",
-                description: "Особые привилегии на месяц",
+                name: "Пакет сообщений",
+                description: "250 сообщений",
                 price: 1000,
                 iconName: "star.fill",
-                category: .exclusives
+                category: .msg
             ),
             ShopItem(
                 name: "Бесплатные СМС",
                 description: "100 СМС в подарок",
                 price: 200,
                 iconName: "message.fill",
-                category: .gigs
+                category: .gb
             ),
             ShopItem(
                 name: "200 минут",
                 description: "Удвоенные минуты",
                 price: 350,
                 iconName: "phone.fill",
-                category: .minutes
+                category: .min
             )
         ]
     }
@@ -163,22 +163,21 @@ class ShopViewModel {
                 
                 await MainActor.run {
                     if result.success {
-                        // Списываем койны локально
-                        if userState.spendCoins(item.price) {
-                            // Обновляем статус товара
-                            if let index = self.items.firstIndex(where: { $0.id == item.id }) {
-                                self.items[index].isPurchased = true
-                            }
-                            
-                            // Обновляем баланс если сервер вернул новый
-                            if let newBalance = result.newBalance {
-                                userState.coin.amount = newBalance
-                            }
-                            
-                            self.purchaseMessage = result.message
-                            self.showPurchaseAlert = true
-                            
+                        // Обновляем статус товара
+                        if let index = self.items.firstIndex(where: { $0.id == item.id }) {
+                            self.items[index].isPurchased = true
                         }
+                        
+                        // Обновляем баланс - сервер уже списал деньги
+                        if let newBalance = result.newBalance {
+                            userState.updateBalance(newBalance)
+                        } else {
+                            // Если сервер не вернул баланс, списываем локально
+                            _ = userState.spendCoinsLocally(item.price)
+                        }
+                        
+                        self.purchaseMessage = result.message
+                        self.showPurchaseAlert = true
                     } else {
                         self.purchaseMessage = result.message
                         self.showPurchaseAlert = true

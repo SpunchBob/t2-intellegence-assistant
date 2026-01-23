@@ -18,6 +18,7 @@ struct ShopItem: Identifiable, Codable {
     var category: ShopCategory
     var isRecommended: Bool
     var isDealOfTheDay: Bool
+    var productId: Int? // ID продукта на сервере
     
     init(
         id: UUID = UUID(),
@@ -29,7 +30,8 @@ struct ShopItem: Identifiable, Codable {
         isPurchased: Bool = false,
         category: ShopCategory = .all,
         isRecommended: Bool = false,
-        isDealOfTheDay: Bool = false
+        isDealOfTheDay: Bool = false,
+        productId: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -41,13 +43,13 @@ struct ShopItem: Identifiable, Codable {
         self.category = category
         self.isRecommended = isRecommended
         self.isDealOfTheDay = isDealOfTheDay
+        self.productId = productId
     }
 }
 
 enum ShopCategory: String, Codable, CaseIterable {
     case all = "Все"
-    case gigs = "Гиги"
-    case minutes = "Минуты"
-    case discounts = "Скидки"
-    case exclusives = "Экскл"
+    case gb = "Гиги"
+    case min = "Минуты"
+    case msg = "Сообщения"
 }

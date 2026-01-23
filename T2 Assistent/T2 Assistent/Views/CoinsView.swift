@@ -49,6 +49,8 @@ struct CoinsView: View {
         .onAppear {
             viewModel.userState = userState
             startTimer()
+            // Загружаем квесты с сервера
+            viewModel.loadQuests()
         }
         .alert("Награда", isPresented: $viewModel.showRewardAlert) {
             Button("OK", role: .cancel) { }
@@ -69,7 +71,7 @@ struct CoinsView: View {
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("Зарабатывай Гиги каждый день")
+            Text("Зарабатывай Койны каждый день")
                 .font(.system(size: 16))
                 .foregroundColor(.tele2Gray)
 
@@ -109,7 +111,7 @@ struct CoinsView: View {
                             .font(.system(size: 14))
                             .foregroundColor(.orange)
 
-                        Text("Бонус к наградам: +5 Гигов")
+                        Text("Бонус к наградам: +5 Койнов")
                             .font(.system(size: 14))
                             .foregroundColor(.white)
                     }
@@ -170,10 +172,7 @@ struct CoinsView: View {
 
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.tele2Pink)
-                            .frame(
-                                width: geometry.size.width * CGFloat(completedQuestsCount) / CGFloat(viewModel.quests.count),
-                                height: 8
-                            )
+                            
                     }
                 }
                 .frame(height: 8)
@@ -181,9 +180,24 @@ struct CoinsView: View {
 
             // Список квестов
             VStack(spacing: 12) {
-                ForEach(viewModel.quests) { quest in
-                    QuestRowCard(quest: quest) {
-                        viewModel.completeQuest(quest)
+                if viewModel.isLoadingQuests {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .tele2Pink))
+                        Spacer()
+                    }
+                    .padding(.vertical, 20)
+                } else if let error = viewModel.questsError {
+                    Text("Ошибка: \(error)")
+                        .font(.system(size: 14))
+                        .foregroundColor(.red)
+                        .padding()
+                } else {
+                    ForEach(viewModel.quests) { quest in
+                        QuestRowCard(quest: quest) {
+                            viewModel.completeQuest(quest)
+                        }
                     }
                 }
             }
@@ -339,11 +353,11 @@ struct MiniGameCardNew: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Макс. выигрыш: \(game.maxReward) Гигов")
+                Text("Макс. выигрыш: \(game.maxReward) Койнов")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white)
 
-                Text("\(game.maxReward) Гигов")
+                Text("\(game.maxReward) Койнов")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(iconColor)
             }

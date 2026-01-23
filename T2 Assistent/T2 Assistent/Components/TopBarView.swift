@@ -79,7 +79,7 @@ struct TopBarView: View {
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
                 
-                Text("Гигов")
+                Text("Койнов")
                     .font(.system(size: 12))
                     .foregroundColor(.tele2Gray)
             }

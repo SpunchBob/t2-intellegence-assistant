@@ -14,15 +14,43 @@ class CoinsViewModel {
     var miniGames: [MiniGame] = []
     var showRewardAlert = false
     var rewardMessage = ""
+    var isLoadingQuests = false
+    var questsError: String?
     
     var userState: UserStateService?
     
+    private let questService = QuestService.shared
+    
     init() {
-        loadQuests()
         loadMiniGames()
     }
     
-    private func loadQuests() {
+    /// Загрузка квестов с сервера
+    func loadQuests() {
+        isLoadingQuests = true
+        questsError = nil
+        
+        Task {
+            do {
+                let loadedQuests = try await questService.loadDailyQuests()
+                
+                await MainActor.run {
+                    self.quests = loadedQuests
+                    self.isLoadingQuests = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.questsError = error.localizedDescription
+                    self.isLoadingQuests = false
+                    // Загружаем локальные данные при ошибке
+                    self.loadLocalQuests()
+                }
+                print("Error loading quests: \(error)")
+            }
+        }
+    }
+    
+    private func loadLocalQuests() {
         quests = [
             Quest(
                 title: "Зайти в приложение",
@@ -112,17 +140,46 @@ class CoinsViewModel {
         ]
     }
     
+    /// Выполнение квеста через API
     func completeQuest(_ quest: Quest) {
         guard !quest.isCompleted else { return }
         guard let userState = userState else { return }
         
-        if let index = quests.firstIndex(where: { $0.id == quest.id }) {
-            quests[index].isCompleted = true
-            quests[index].progress = quests[index].maxProgress
-            userState.addCoins(quest.reward)
-            userState.addExperience(quest.reward / 2) // Опыт за выполнение квеста
-            rewardMessage = "Выполнен квест: \(quest.title)! Получено \(quest.reward) койнов."
-            showRewardAlert = true
+        Task {
+            do {
+                // Вызываем API для выполнения квеста
+                let result = try await questService.completeQuest(quest)
+                
+                await MainActor.run {
+                    if result.success {
+                        // Удаляем квест из списка (API возвращает только невыполненные)
+                        self.quests.removeAll { $0.id == quest.id }
+                        
+                        // Начисляем награду локально (сервер уже начислил на баланс)
+                        // Перезагружаем баланс для синхронизации
+                        Task {
+                            await userState.loadBalance()
+                        }
+                        
+                        userState.addExperience(quest.reward / 2)
+                        self.rewardMessage = "Выполнен квест: \(quest.title)! Получено \(quest.reward) койнов."
+                        self.showRewardAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    // Если API недоступен, выполняем локально
+                    if let index = self.quests.firstIndex(where: { $0.id == quest.id }) {
+                        self.quests[index].isCompleted = true
+                        self.quests[index].progress = self.quests[index].maxProgress
+                        userState.addCoinsLocally(quest.reward)
+                        userState.addExperience(quest.reward / 2)
+                        self.rewardMessage = "Выполнен квест: \(quest.title)! Получено \(quest.reward) койнов."
+                        self.showRewardAlert = true
+                    }
+                }
+                print("Error completing quest: \(error)")
+            }
         }
     }
     
@@ -139,7 +196,7 @@ class CoinsViewModel {
         } else {
             // Для других игр - имитация
             guard let userState = userState else { return }
-            userState.addCoins(game.reward)
+            userState.addCoinsLocally(game.reward)
             userState.addExperience(game.reward / 2)
             rewardMessage = "Вы прошли игру \(game.name)! Получено \(game.reward) койнов."
             showRewardAlert = true

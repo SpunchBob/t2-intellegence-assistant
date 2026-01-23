@@ -207,7 +207,7 @@ struct GameOverModal: View {
                         HStack(spacing: 8) {
                             Image(systemName: "bitcoinsign.circle.fill")
                                 .foregroundColor(.yellow)
-                            Text("Награда: +\(reward) Гигов")
+                            Text("Награда: +\(reward) Койнов")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.yellow)
                         }

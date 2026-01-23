@@ -31,8 +31,6 @@ struct ShopView: View {
                             
                             // Карточка Мой Питомец
                             myPetCard
-                                .withTutorialSupport(viewId: "myPetCard")
-                                .id("myPetCard")
                             
                             // Рекомендации
                             recommendationsSection
@@ -65,6 +63,8 @@ struct ShopView: View {
         .navigationBarHidden(true)
         .onAppear {
             viewModel.userState = userState
+            // Перезагружаем товары с сервера при появлении
+            viewModel.loadItems()
         }
         .alert("Покупка", isPresented: $viewModel.showPurchaseAlert) {
             Button("OK", role: .cancel) { }
@@ -164,11 +164,11 @@ struct ShopView: View {
     
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Гиги-шоп")
+            Text("Койн-шоп")
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(.white)
             
-            Text("Обменивайте Гиги на бонусы")
+            Text("Обменивайте Койны на бонусы")
                 .font(.system(size: 16))
                 .foregroundColor(.tele2Gray)
         }
@@ -308,7 +308,7 @@ struct InternetCard: View {
                         .strikethrough()
                 }
                 
-                Text("\(item.price) Гигов")
+                Text("\(item.price) Койнов")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.black)
             }
@@ -374,7 +374,7 @@ struct ShopItemCard: View {
                             .strikethrough()
                     }
                     
-                    Text("\(item.price) Гигов")
+                    Text("\(item.price) Койнов")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
                 }

@@ -34,7 +34,7 @@ class ChatViewModel {
                     // Если сообщений нет, добавляем приветственное
                     if self.messages.isEmpty {
                         self.messages.append(ChatMessage(
-                            content: "Смотри, в Гиги-шопе сейчас скидка 30% на 10 ГБ интернета! Успей воспользоваться акцией дня!",
+                            content: "Смотри, в Койн-шопе сейчас скидка 30% на 10 ГБ интернета! Успей воспользоваться акцией дня!",
                             isUser: false
                         ))
                         self.hasShopButton = true

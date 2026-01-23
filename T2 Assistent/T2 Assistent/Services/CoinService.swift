@@ -12,64 +12,69 @@ class CoinService {
     static let shared = CoinService()
     
     private let networkService = NetworkService.shared
+    private let authService = AuthService.shared
     
     private init() {}
     
-    // Загрузка баланса койнов с сервера
+    /// Получить userId для запросов
+    private func getUserId() throws -> Int {
+        guard let userId = authService.currentUserId else {
+            throw NetworkError.notFound
+        }
+        return userId
+    }
+    
+    /// Загрузка баланса с сервера
+    /// GET /api/Balance/{userId}
     func loadBalance() async throws -> Coin {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Coin>(endpoint: "/api/v1/coins/balance")
+        let userId = try getUserId()
         
-        // Временная заглушка
-        try await Task.sleep(nanoseconds: 500_000_000)
+        let response: BalanceResponse = try await networkService.request(
+            endpoint: "/api/Balance/\(userId)"
+        )
         
-        // В реальном приложении:
-        // let response: CoinResponse = try await networkService.request(
-        //     endpoint: "/api/v1/coins/balance",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        // return response.coin
-        
-        return Coin(amount: 1250)
+        return Coin(amount: Int(response.amount))
     }
     
-    // Добавление койнов
+    /// Обновление баланса на сервере (для теста/демо)
+    /// PUT /api/Balance/{userId}
+    func updateBalance(_ amount: Double) async throws -> Coin {
+        let userId = try getUserId()
+        
+        let _: BalanceResponse = try await networkService.request(
+            endpoint: "/api/Balance/\(userId)",
+            method: "PUT",
+            body: ["amount": amount]
+        )
+        
+        return Coin(amount: Int(amount))
+    }
+    
+    /// Добавление койнов (через обновление баланса)
     func addCoins(_ amount: Int) async throws -> Coin {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Coin>(
-        //     endpoint: "/api/v1/coins/add",
-        //     method: "POST",
-        //     body: ["amount": amount],
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+        // Сначала получаем текущий баланс
+        let currentBalance = try await loadBalance()
+        let newAmount = Double(currentBalance.amount + amount)
         
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return Coin(amount: 1250 + amount)
+        return try await updateBalance(newAmount)
     }
     
-    // Списание койнов
+    /// Списание койнов (через обновление баланса)
     func spendCoins(_ amount: Int) async throws -> Coin {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Coin>(
-        //     endpoint: "/api/v1/coins/spend",
-        //     method: "POST",
-        //     body: ["amount": amount],
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+        // Сначала получаем текущий баланс
+        let currentBalance = try await loadBalance()
         
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return Coin(amount: 1250 - amount)
+        guard currentBalance.amount >= amount else {
+            throw NetworkError.insufficientBalance
+        }
+        
+        let newAmount = Double(currentBalance.amount - amount)
+        return try await updateBalance(newAmount)
     }
     
-    // История транзакций
+    /// История транзакций (заглушка - API не предоставляет)
     func loadTransactionHistory() async throws -> [CoinTransaction] {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<[CoinTransaction]>(
-        //     endpoint: "/api/v1/coins/transactions",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        
-        try await Task.sleep(nanoseconds: 500_000_000)
+        // API не предоставляет историю транзакций
         return []
     }
 }

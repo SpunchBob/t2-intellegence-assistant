@@ -12,110 +12,80 @@ class QuestService {
     static let shared = QuestService()
     
     private let networkService = NetworkService.shared
+    private let authService = AuthService.shared
     
     private init() {}
     
-    // Загрузка ежедневных квестов
-    func loadDailyQuests() async throws -> [Quest] {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<[Quest]>(
-        //     endpoint: "/api/v1/quests/daily",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        
-        try await Task.sleep(nanoseconds: 500_000_000)
-        
-        // Временные данные
-        return [
-            Quest(
-                title: "Зайти в приложение",
-                description: "",
-                reward: 10,
-                isCompleted: true,
-                progress: 1,
-                maxProgress: 1
-            ),
-            Quest(
-                title: "Проверить баланс",
-                description: "",
-                reward: 10,
-                isCompleted: true,
-                progress: 1,
-                maxProgress: 1
-            ),
-            Quest(
-                title: "Использовать помощника",
-                description: "",
-                reward: 20,
-                isCompleted: false,
-                progress: 0,
-                maxProgress: 1
-            ),
-            Quest(
-                title: "Купить что-то в магазине",
-                description: "",
-                reward: 50,
-                isCompleted: false,
-                progress: 0,
-                maxProgress: 1
-            ),
-            Quest(
-                title: "Сыграть в одну игру",
-                description: "",
-                reward: 30,
-                isCompleted: false,
-                progress: 0,
-                maxProgress: 1
-            )
-        ]
+    /// Получить userId для запросов
+    private func getUserId() throws -> Int {
+        guard let userId = authService.currentUserId else {
+            throw NetworkError.notFound
+        }
+        return userId
     }
     
-    // Загрузка всех квестов (ежедневные + недельные + специальные)
-    func loadAllQuests() async throws -> [Quest] {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<[Quest]>(
-        //     endpoint: "/api/v1/quests",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+    /// Загрузка невыполненных заданий
+    /// GET /api/Task/getTasks/{userId}
+    func loadDailyQuests() async throws -> [Quest] {
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 600_000_000)
+        let tasks: [APITask] = try await networkService.request(
+            endpoint: "/api/Task/getTasks/\(userId)"
+        )
+        
+        // Конвертируем API задания в локальные Quest
+        return tasks.map { $0.toQuest() }
+    }
+    
+    /// Загрузка всех квестов
+    func loadAllQuests() async throws -> [Quest] {
         return try await loadDailyQuests()
     }
     
-    // Отметка квеста как выполненного
-    func completeQuest(_ questId: UUID) async throws -> QuestCompletionResult {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<QuestCompletionResult>(
-        //     endpoint: "/api/v1/quests/\(questId.uuidString)/complete",
-        //     method: "POST",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+    /// Отметка квеста как выполненного + начисление награды
+    /// POST /api/Task/complete
+    func completeQuest(_ quest: Quest) async throws -> QuestCompletionResult {
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 400_000_000)
+        guard let taskId = quest.taskId else {
+            throw NetworkError.notFound
+        }
+        
+        // API возвращает 200 OK без тела или с простым сообщением
+        try await networkService.requestVoid(
+            endpoint: "/api/Task/complete",
+            method: "POST",
+            body: [
+                "userId": userId,
+                "taskId": taskId
+            ]
+        )
+        
         return QuestCompletionResult(
             success: true,
-            reward: 10,
-            message: "Квест выполнен", newBalance: nil
+            reward: quest.reward,
+            message: "Task completed, reward added",
+            newBalance: nil
         )
     }
     
-    // Обновление прогресса квеста
+    /// Отметка квеста как выполненного по UUID (для обратной совместимости)
+    func completeQuest(_ questId: UUID) async throws -> QuestCompletionResult {
+        // Этот метод оставлен для обратной совместимости
+        // В реальности нужно использовать completeQuest(_ quest: Quest)
+        throw NetworkError.notFound
+    }
+    
+    /// Обновление прогресса квеста (API не поддерживает, заглушка)
     func updateQuestProgress(_ questId: UUID, progress: Int) async throws -> Quest {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<Quest>(
-        //     endpoint: "/api/v1/quests/\(questId.uuidString)/progress",
-        //     method: "PUT",
-        //     body: ["progress": progress],
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        
-        try await Task.sleep(nanoseconds: 300_000_000)
+        // API не поддерживает обновление прогресса
+        // Задания либо выполнены, либо нет
         return Quest(
             title: "Квест",
             description: "",
             reward: 10,
             progress: progress,
-            maxProgress: 100
+            maxProgress: 1
         )
     }
 }

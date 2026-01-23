@@ -12,81 +12,87 @@ class ShopService {
     static let shared = ShopService()
     
     private let networkService = NetworkService.shared
+    private let authService = AuthService.shared
+    
+    // Кэш для хранения лучшей категории и скидки
+    private(set) var bestCategory: String = ""
+    private(set) var salePercent: Int = 0
     
     private init() {}
     
-    // Загрузка всех товаров магазина
+    /// Получить userId для запросов
+    private func getUserId() throws -> Int {
+        guard let userId = authService.currentUserId else {
+            throw NetworkError.notFound
+        }
+        return userId
+    }
+    
+    /// Загрузка всех товаров магазина с рекомендациями
+    /// GET /api/Product/getProducts/{userId}
     func loadItems(category: ShopCategory? = nil) async throws -> [ShopItem] {
-        // TODO: Замените на реальный endpoint
-        // var endpoint = "/api/v1/shop/items"
-        // if let category = category {
-        //     endpoint += "?category=\(category.rawValue)"
-        // }
-        // return try await networkService.request<[ShopItem]>(
-        //     endpoint: endpoint,
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 500_000_000)
+        let response: ProductsResponse = try await networkService.request(
+            endpoint: "/api/Product/getProducts/\(userId)"
+        )
         
-        // Временные данные для демонстрации
-        return [
-            ShopItem(
-                name: "10 ГБ интернета",
-                description: "Дополнительный интернет",
-                price: 105,
-                originalPrice: 150,
-                iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
-                isRecommended: true
-            ),
-            ShopItem(
-                name: "50 ГБ интернета",
-                description: "Большой пакет интернета",
-                price: 600,
-                iconName: "antenna.radiowaves.left.and.right",
-                category: .gigs,
-                isRecommended: true
-            )
-        ]
+        // Сохраняем информацию о лучшей категории и скидке
+        self.bestCategory = response.bestCategory
+        self.salePercent = response.sale
+        
+        // Конвертируем API продукты в локальные ShopItem
+        var items = response.products.map { $0.toShopItem() }
+        
+        // Фильтруем по категории если нужно
+        if let category = category, category != .all {
+            items = items.filter { $0.category == category }
+        }
+        
+        return items
     }
     
-    // Загрузка рекомендуемых товаров
+    /// Загрузка рекомендуемых товаров (товары со скидкой)
     func loadRecommendedItems() async throws -> [ShopItem] {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<[ShopItem]>(
-        //     endpoint: "/api/v1/shop/recommended",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        
-        try await Task.sleep(nanoseconds: 400_000_000)
-        return try await loadItems()
+        let allItems = try await loadItems()
+        return allItems.filter { $0.isRecommended }
     }
     
-    // Загрузка акции дня
+    /// Загрузка акции дня (первый товар со скидкой)
     func loadDealOfTheDay() async throws -> ShopItem? {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<ShopItem?>(
-        //     endpoint: "/api/v1/shop/deal-of-the-day",
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
-        
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return nil
+        let allItems = try await loadItems()
+        return allItems.first { $0.originalPrice != nil }
     }
     
-    // Покупка товара
+    /// Покупка товара
+    /// POST /api/Purchase/makePurchase
     func purchaseItem(_ item: ShopItem) async throws -> PurchaseResult {
-        // TODO: Замените на реальный endpoint
-        // return try await networkService.request<PurchaseResult>(
-        //     endpoint: "/api/v1/shop/purchase",
-        //     method: "POST",
-        //     body: ["item_id": item.id.uuidString],
-        //     headers: ["Authorization": "Bearer \(token)"]
-        // )
+        let userId = try getUserId()
         
-        try await Task.sleep(nanoseconds: 500_000_000)
-        return PurchaseResult(success: true, message: "Товар успешно куплен", newBalance: nil)
+        guard let productId = item.productId else {
+            throw NetworkError.notFound
+        }
+        
+        let dateFormatter = ISO8601DateFormatter()
+        let purchasedAt = dateFormatter.string(from: Date())
+        
+        let response: PurchaseResponse = try await networkService.request(
+            endpoint: "/api/Purchase/makePurchase",
+            method: "POST",
+            body: [
+                "userId": userId,
+                "productId": productId,
+                "purchasePrice": Double(item.price),
+                "purchasedAt": purchasedAt
+            ]
+        )
+        
+        return PurchaseResult(
+            success: true,
+            message: response.message,
+            newBalance: Int(response.newBalance),
+            purchaseId: response.purchaseId
+        )
     }
 }
 
@@ -95,4 +101,12 @@ struct PurchaseResult: Codable {
     let success: Bool
     let message: String
     let newBalance: Int?
+    let purchaseId: Int?
+    
+    init(success: Bool, message: String, newBalance: Int?, purchaseId: Int? = nil) {
+        self.success = success
+        self.message = message
+        self.newBalance = newBalance
+        self.purchaseId = purchaseId
+    }
 }
