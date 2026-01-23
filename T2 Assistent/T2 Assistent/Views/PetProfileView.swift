@@ -10,6 +10,7 @@ import SwiftUI
 struct PetProfileView: View {
     @Environment(UserStateService.self) private var userState
     @Binding var isPresented: Bool
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         ZStack {
@@ -51,9 +52,9 @@ struct PetProfileView: View {
                                 .fill(Color.tele2Pink)
                                 .frame(width: 120, height: 120)
                             
-                            Image(systemName: "face.smiling")
-                                .font(.system(size: 60))
-                                .foregroundColor(.orange)
+                            Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
+                                .font(.system(size: 60, weight: .semibold))
+                                .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
                         }
                         
                         // Имя

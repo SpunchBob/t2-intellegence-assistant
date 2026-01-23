@@ -19,6 +19,7 @@ struct PaymentMethodView: View {
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         NavigationStack {
@@ -30,37 +31,45 @@ struct PaymentMethodView: View {
                     ProgressView()
                         .tint(.tele2Pink)
                 } else {
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            // Заголовок
-                            headerSection
-                            
-                            // Информация о сумме
-                            amountInfoSection
-                            
-                            // Список способов оплаты
-                            paymentMethodsSection
-                            
-                            // Кнопка оплаты
-                            payButton
-                                .padding(.bottom, 40)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                // Заголовок
+                                headerSection
+                                
+                                // Информация о сумме
+                                amountInfoSection
+                                    .withTutorialSupport(viewId: "1")
+                                
+                                // Информация о сумме списания с учетом комиссии
+                                commission
+                                    .withTutorialSupport(viewId: "2")
+                                
+                                paymentMethodsSection
+                                
+                                total
+                                    .withTutorialSupport(viewId: "3")
+                                
+                                
+                                // Кнопка оплаты
+                                payButton
+                                   
+                                    .padding(.bottom, 40)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 20)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 20)
+                        .onChange(of: tutorialManager.shouldScrollToViewId) { _, viewId in
+                            if let viewId = viewId {
+                                withAnimation(.easeInOut(duration: 0.5)) {
+                                    proxy.scrollTo(viewId, anchor: .center)
+                                }
+                            }
+                        }
                     }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
-                    }
-                }
-            }
             .alert("Успешно", isPresented: $showSuccessAlert) {
                 Button("OK") {
                     dismiss()
@@ -76,6 +85,11 @@ struct PaymentMethodView: View {
         }
         .onAppear {
             loadPaymentMethods()
+            if tutorialManager.currentStep?.id == "petEscapeTopUpButton" || tutorialManager.isPetEscaped {
+                // Сбрасываем флаг побега и запускаем туториал по экрану оплаты
+                tutorialManager.isPetEscaped = false
+                tutorialManager.startTutorial(.petFoundPaymentTutorial)
+            }
         }
     }
     
@@ -113,6 +127,94 @@ struct PaymentMethodView: View {
         .cornerRadius(16)
     }
     
+    // MARK: - Charge Amount Section
+    private var commission: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Комиссия")
+                    .font(.system(size: 14))
+                    .foregroundColor(.tele2Gray)
+                
+                Text("\(Int(commissionPercent * 100)) %")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+        }
+        .padding(20)
+        .background(Color.tele2DarkSecondary)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Charge Amount Section
+    private var total: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Итого спишется:")
+                    .font(.system(size: 14))
+                    .foregroundColor(.tele2Gray)
+                
+                Text("\(formatAmount(totalChargeAmount)) ₽")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+        }
+        .padding(20)
+        .background(Color.tele2DarkSecondary)
+        .cornerRadius(16)
+    }
+    
+    private var commissionPercent: Double {
+        guard let method = selectedMethod else { return 0 }
+        
+        switch method.name {
+        case "Банковская карта":
+            // Комиссия 2.5% для банковских карт
+            return 0.025
+        case "СБП":
+            // Комиссия 1% для СБП
+            return 0.01
+        case "Электронные кошельки":
+            // Комиссия 3% для электронных кошельков
+            return 0.03
+        case "С баланса телефона":
+            // Комиссия 5% для баланса телефона
+            return 0.05
+        default:
+            return 0
+        }
+    }
+    
+    // MARK: - Computed Properties
+    private var commissionAmount: Double {
+        guard let method = selectedMethod else { return 0 }
+        
+        // Расчет комиссии в зависимости от способа оплаты
+        switch method.name {
+        case "Банковская карта":
+            // Комиссия 2.5% для банковских карт
+            return amount * 0.025
+        case "СБП":
+            // Комиссия 1% для СБП
+            return amount * 0.01
+        case "Электронные кошельки":
+            // Комиссия 3% для электронных кошельков
+            return amount * 0.03
+        case "С баланса телефона":
+            // Комиссия 5% для баланса телефона
+            return amount * 0.05
+        default:
+            return 0
+        }
+    }
+    
+    private var totalChargeAmount: Double {
+        return amount + commissionAmount
+    }
+
     // MARK: - Payment Methods Section
     private var paymentMethodsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -159,6 +261,7 @@ struct PaymentMethodView: View {
             .cornerRadius(12)
         }
         .disabled(selectedMethod == nil || isProcessing)
+        .padding(10)
     }
     
     // MARK: - Helper Methods

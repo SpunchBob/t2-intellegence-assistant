@@ -65,7 +65,6 @@ struct ShopView: View {
         .navigationBarHidden(true)
         .onAppear {
             viewModel.userState = userState
-            TutorialManager.shared.startTutorial(.shopTutorial)
         }
         .alert("Покупка", isPresented: $viewModel.showPurchaseAlert) {
             Button("OK", role: .cancel) { }
@@ -180,9 +179,9 @@ struct ShopView: View {
     
     private var myPetCard: some View {
         HStack(spacing: 16) {
-            Image(systemName: "face.smiling")
-                .font(.system(size: 40))
-                .foregroundColor(.orange)
+            Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
+                .font(.system(size: 40, weight: .semibold))
+                .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Мой Питомец")

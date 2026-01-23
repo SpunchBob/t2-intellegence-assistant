@@ -15,19 +15,21 @@ struct TutorialOverlayView: View {
     @State private var showPetGuide: Bool = false
     
     var body: some View {
-        if tutorialManager.isTutorialActive,
+        if shouldShowOverlay,
            let step = tutorialManager.currentStep,
            let tutorial = tutorialManager.currentTutorial {
             
             ZStack {
                 // Затемненный фон с вырезом для выделенного объекта
                 overlayBackground(highlightFrame: highlightFrame, config: tutorial)
+                    .allowsHitTesting(false)
                 
                 // Питомец + облачко с текстом
                 petGuide(step: step)
+                    .allowsHitTesting(false)
                 
-                // Кнопки навигации
-                navigationButtons
+                // Кнопка подтверждения
+                okButton
             }
             .ignoresSafeArea()
             .onAppear {
@@ -50,6 +52,14 @@ struct TutorialOverlayView: View {
                 }
             }
         }
+    }
+
+    private var shouldShowOverlay: Bool {
+        guard tutorialManager.isTutorialActive else { return false }
+        if tutorialManager.isPetEscaped {
+            return tutorialManager.currentStep?.id == "petEscapeFound"
+        }
+        return true
     }
     
     /// Затемненный фон с вырезом для выделенного объекта
@@ -108,7 +118,7 @@ struct TutorialOverlayView: View {
                 
                 HStack(alignment: .bottom, spacing: 14) {
                     // Питомец
-                    PetAvatarView(iconName: userState.pet.iconName)
+                    PetAvatarView(iconName: userState.pet.iconName, isPetEscaped: tutorialManager.isPetEscaped)
                         .frame(width: 84, height: 84)
                         .accessibilityLabel("Питомец")
                     
@@ -122,7 +132,7 @@ struct TutorialOverlayView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 130) // чтобы не пересекаться с навигационными кнопками
+                .padding(.bottom, overlayBottomPadding)
                 .opacity(showPetGuide ? 1 : 0)
                 .scaleEffect(showPetGuide ? 1 : 0.96, anchor: .bottomLeading)
                 .offset(y: showPetGuide ? 0 : 10)
@@ -131,73 +141,39 @@ struct TutorialOverlayView: View {
         }
     }
     
-    /// Кнопки навигации
-    private var navigationButtons: some View {
+    /// Кнопка подтверждения
+    private var okButton: some View {
         VStack {
             Spacer()
             
-            HStack(spacing: 16) {
-                // Кнопка "Пропустить"
-                Button(action: {
-                    tutorialManager.skipTutorial()
-                }) {
-                    Text("Пропустить")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+            Button(action: {
+                if tutorialManager.currentStepIndex < (tutorialManager.currentTutorial?.steps.count ?? 0) - 1 {
+                    tutorialManager.nextStep()
+                } else {
+                    tutorialManager.finishTutorial()
                 }
-                
-                Spacer()
-                
-                // Кнопка "Назад"
-                if tutorialManager.currentStepIndex > 0 {
-                    Button(action: {
-                        tutorialManager.previousStep()
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "chevron.left")
-                            Text("Назад")
-                        }
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(Color.tele2DarkSecondary)
-                        .cornerRadius(12)
-                    }
-                }
-                
-                // Кнопка "Далее" / "Готово"
-                Button(action: {
-                    if tutorialManager.currentStepIndex < (tutorialManager.currentTutorial?.steps.count ?? 0) - 1 {
-                        tutorialManager.nextStep()
-                    } else {
-                        tutorialManager.finishTutorial()
-                    }
-                }) {
-                    HStack(spacing: 8) {
-                        Text(tutorialManager.currentStepIndex < (tutorialManager.currentTutorial?.steps.count ?? 0) - 1 ? "Далее" : "Готово")
-                        if tutorialManager.currentStepIndex < (tutorialManager.currentTutorial?.steps.count ?? 0) - 1 {
-                            Image(systemName: "chevron.right")
-                        }
-                    }
+            }) {
+                Text("ОК")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 28)
                     .padding(.vertical, 12)
                     .background(Color.tele2Pink)
                     .cornerRadius(12)
-                }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 40)
+            .padding(.bottom, overlayBottomPadding - 50)
         }
+    }
+
+    private var overlayBottomPadding: CGFloat {
+        170 // поднимаем окно выше таббара
     }
 }
 
 private struct PetAvatarView: View {
     let iconName: String
+    let isPetEscaped: Bool
     
     var body: some View {
         ZStack {
@@ -205,7 +181,11 @@ private struct PetAvatarView: View {
                 .fill(Color.tele2Pink)
                 .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 6)
             
-            if let uiImage = UIImage(named: iconName) {
+            if isPetEscaped {
+                Image(systemName: "questionmark")
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundColor(.white)
+            } else if let uiImage = UIImage(named: iconName) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFit()
@@ -234,6 +214,7 @@ private struct SpeechBubble: View {
                 .font(.system(size: 15))
                 .foregroundColor(.white.opacity(0.92))
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, 10)
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 16)

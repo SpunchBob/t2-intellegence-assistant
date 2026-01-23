@@ -8,6 +8,8 @@
 import SwiftUI
 import Combine
 
+// TODO: - 
+
 /// Менеджер для управления системой туториалов
 class TutorialManager: ObservableObject {
     static let shared = TutorialManager()
@@ -15,22 +17,43 @@ class TutorialManager: ObservableObject {
     @Published var currentTutorial: TutorialConfig?
     @Published var currentStepIndex: Int = 0
     @Published var isTutorialActive: Bool = false
+    @Published var isPetEscaped: Bool = false
     @Published var highlightedViewFrame: CGRect?
     @Published var highlightedViewId: String?
     @Published var shouldScrollToViewId: String? // Триггер для скролла к элементу
     
     private var cancellables = Set<AnyCancellable>()
+    private var hasShownPetEscapeTutorial = false
+    private var isPetEscapeTutorialActive = false
     
     private init() {}
     
     /// Начать туториал
     func startTutorial(_ config: TutorialConfig) {
+        startTutorial(config, isPetEscape: false)
+    }
+
+    /// Начать туториал с флагами сценария
+    private func startTutorial(_ config: TutorialConfig, isPetEscape: Bool) {
         guard !config.steps.isEmpty else { return }
         
+        isPetEscapeTutorialActive = isPetEscape
+        if !isPetEscape {
+            isPetEscaped = false
+        }
         currentTutorial = config
         currentStepIndex = 0
         isTutorialActive = true
         updateHighlightedView()
+    }
+
+    /// Запустить сценарий побега питомца один раз за сессию
+    func startPetEscapeTutorialIfNeeded() {
+        guard !hasShownPetEscapeTutorial, !isTutorialActive else { return }
+        hasShownPetEscapeTutorial = true
+        isPetEscapeTutorialActive = true
+        isPetEscaped = true
+        startTutorial(.petEscapeTutorial, isPetEscape: true)
     }
     
     /// Перейти к следующему шагу
@@ -64,6 +87,11 @@ class TutorialManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.currentTutorial = nil
             self.currentStepIndex = 0
+        }
+
+        if isPetEscapeTutorialActive {
+            isPetEscaped = false
+            isPetEscapeTutorialActive = false
         }
     }
     
@@ -125,5 +153,20 @@ class TutorialManager: ObservableObject {
             height: size.height
         )
         highlightedViewFrame = frame
+    }
+    
+    /// Отключить выделение объекта (очистить выделение без завершения туториала)
+    func clearHighlight() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            highlightedViewFrame = nil
+            highlightedViewId = nil
+            shouldScrollToViewId = nil
+        }
+    }
+    
+    /// Отключить выделение конкретного View по его ID
+    func clearHighlight(for viewId: String) {
+        guard highlightedViewId == viewId else { return }
+        clearHighlight()
     }
 }

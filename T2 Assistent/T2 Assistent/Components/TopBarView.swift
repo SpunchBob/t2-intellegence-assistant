@@ -11,6 +11,7 @@ struct TopBarView: View {
     @Environment(UserStateService.self) private var userState
     @State private var topBarManager = TopBarManager.shared
     @State private var showPetProfile = false
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         if topBarManager.isVisible {
@@ -50,9 +51,9 @@ struct TopBarView: View {
                             .fill(Color.tele2Pink)
                             .frame(width: 32, height: 32)
                         
-                        Image(systemName: "face.smiling")
-                            .font(.system(size: 18))
-                            .foregroundColor(.orange)
+                        Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
                     }
                     
                     // Уведомление

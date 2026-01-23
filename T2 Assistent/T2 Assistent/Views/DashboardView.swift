@@ -14,6 +14,7 @@ struct DashboardView: View {
     @State private var isLoading = true
     @State private var showTopUp = false
     @State private var promotionCards: [PromotionCard] = []
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         ZStack {
@@ -75,6 +76,7 @@ struct DashboardView: View {
         .navigationBarHidden(true)
         .onAppear {
             loadData()
+            tutorialManager.startPetEscapeTutorialIfNeeded()
         }
         .onChange(of: showTopUp) { _, newValue in
             if !newValue {
@@ -82,7 +84,7 @@ struct DashboardView: View {
                 loadData()
             }
         }
-        .sheet(isPresented: $showTopUp) {
+        .navigationDestination(isPresented: $showTopUp) {
             TopUpView()
                 .environment(userState)
         }
@@ -172,6 +174,12 @@ struct DashboardView: View {
                     .padding(.vertical, 12)
                     .background(Color.black)
                     .cornerRadius(8)
+            }
+            .overlay(alignment: .topTrailing) {
+                if shouldShowEscapeHint {
+                    EscapeHintView(text: "Вот тут его следы")
+                        .offset(x: 12, y: -24)
+                }
             }
         }
         .padding(20)
@@ -324,6 +332,12 @@ struct DashboardView: View {
         formatter.maximumFractionDigits = 2
         return formatter.string(from: NSNumber(value: balance)) ?? "0.00"
     }
+
+    private var shouldShowEscapeHint: Bool {
+        tutorialManager.isPetEscaped &&
+        tutorialManager.currentStep?.id == "petEscapeDashboardTopUp"
+    }
+
 }
 
 // MARK: - Promotion Card View

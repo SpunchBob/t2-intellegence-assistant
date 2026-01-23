@@ -49,7 +49,6 @@ struct CoinsView: View {
         .onAppear {
             viewModel.userState = userState
             startTimer()
-            TutorialManager.shared.startTutorial(.coins)
         }
         .alert("Награда", isPresented: $viewModel.showRewardAlert) {
             Button("OK", role: .cancel) { }
@@ -82,9 +81,9 @@ struct CoinsView: View {
                             .fill(Color.tele2Pink)
                             .frame(width: 48, height: 48)
 
-                        Image(systemName: "face.smiling")
-                            .font(.system(size: 24))
-                            .foregroundColor(.orange)
+                            Image(systemName: tutorialManager.isPetEscaped ? "questionmark" : "face.smiling")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(tutorialManager.isPetEscaped ? .white : .orange)
                     }
 
                     // Уведомление
@@ -333,9 +332,9 @@ struct MiniGameCardNew: View {
                         .fill(Color.tele2Pink)
                         .frame(width: 24, height: 24)
 
-                    Image(systemName: "face.smiling")
-                        .font(.system(size: 12))
-                        .foregroundColor(.orange)
+                    Image(systemName: TutorialManager.shared.isPetEscaped ? "questionmark" : "face.smiling")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(TutorialManager.shared.isPetEscaped ? .white : .orange)
                 }
             }
 

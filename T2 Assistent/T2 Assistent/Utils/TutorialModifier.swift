@@ -92,18 +92,23 @@ struct TutorialViewModifier: ViewModifier {
                     tutorialManager.setHighlightedViewFrame(viewFrame, for: viewId)
                 }
             }
-            .onChange(of: tutorialManager.highlightedViewId) { newId in
+            .onChange(of: tutorialManager.highlightedViewId) { _, newId in
                 if newId == viewId {
-                    // При изменении выделенного View обновляем фрейм
-                    let frameToUse: CGRect
-                    if let explicitFrame = explicitParams?.frame {
-                        frameToUse = explicitFrame
-                    } else {
-                        frameToUse = viewFrame
-                    }
-                    
-                    if frameToUse != .zero {
-                        tutorialManager.setHighlightedViewFrame(frameToUse, for: viewId)
+                    // При изменении выделенного View обновляем фрейм с небольшой задержкой
+                    // чтобы GeometryReader успел обновить позицию после скролла
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        guard tutorialManager.highlightedViewId == viewId else { return }
+                        
+                        let frameToUse: CGRect
+                        if let explicitFrame = explicitParams?.frame {
+                            frameToUse = explicitFrame
+                        } else {
+                            frameToUse = viewFrame
+                        }
+                        
+                        if frameToUse != .zero {
+                            tutorialManager.setHighlightedViewFrame(frameToUse, for: viewId)
+                        }
                     }
                 }
             }
@@ -120,6 +125,25 @@ struct TutorialViewModifier: ViewModifier {
                     }
                     
                     tutorialManager.setHighlightedViewFrame(frameToUse, for: viewId)
+                }
+            }
+            .onChange(of: tutorialManager.shouldScrollToViewId) { _, scrollId in
+                // После скролла к этому view обновляем его фрейм
+                if scrollId == viewId {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        guard tutorialManager.highlightedViewId == viewId else { return }
+                        
+                        let frameToUse: CGRect
+                        if let explicitFrame = explicitParams?.frame {
+                            frameToUse = explicitFrame
+                        } else {
+                            frameToUse = viewFrame
+                        }
+                        
+                        if frameToUse != .zero {
+                            tutorialManager.setHighlightedViewFrame(frameToUse, for: viewId)
+                        }
+                    }
                 }
             }
             .id(viewId)

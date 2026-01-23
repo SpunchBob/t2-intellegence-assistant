@@ -11,6 +11,7 @@ struct ChatView: View {
     @Environment(UserStateService.self) private var userState
     @State private var viewModel = ChatViewModel()
     @State private var messageText: String = ""
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         ZStack {
@@ -33,7 +34,8 @@ struct ChatView: View {
                                 ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
                                     MessageBubble(
                                         message: message,
-                                        showShopButton: index == 0 && viewModel.hasShopButton
+                                        showShopButton: index == 0 && viewModel.hasShopButton,
+                                        isPetEscaped: tutorialManager.isPetEscaped
                                     )
                                     .id(message.id)
                                 }
@@ -162,13 +164,14 @@ struct ChatView: View {
 struct MessageBubble: View {
     let message: ChatMessage
     let showShopButton: Bool
+    let isPetEscaped: Bool
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             // Левая сторона - для сообщений ассистента
             if !message.isUser {
-                Image(systemName: "face.smiling")
-                    .font(.system(size: 20))
+                Image(systemName: isPetEscaped ? "questionmark" : "face.smiling")
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(width: 24, height: 24)
                 

@@ -17,6 +17,7 @@ struct TopUpView: View {
     @State private var customAmount: String = ""
     @State private var isLoading = true
     @State private var showPaymentMethod = false
+    @ObservedObject private var tutorialManager = TutorialManager.shared
     
     var body: some View {
         NavigationStack {
@@ -54,17 +55,7 @@ struct TopUpView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .sheet(isPresented: $showPaymentMethod) {
+            .navigationDestination(isPresented: $showPaymentMethod) {
                 if let selectedAmount = selectedAmount {
                     PaymentMethodView(amount: selectedAmount.amount)
                         .environment(userState)
@@ -73,6 +64,9 @@ struct TopUpView: View {
         }
         .onAppear {
             loadData()
+            if tutorialManager.currentStep?.id == "petEscapeDashboardTopUp" {
+                tutorialManager.nextStep()
+            }
         }
     }
     
@@ -197,6 +191,12 @@ struct TopUpView: View {
                 .cornerRadius(12)
         }
         .disabled(selectedAmount == nil && (Double(customAmount) ?? 0) <= 0)
+        .overlay(alignment: .topTrailing) {
+            if shouldShowEscapeHint {
+                EscapeHintView(text: "Вот тут его следы")
+                    .offset(x: 12, y: -24)
+            }
+        }
     }
     
     // MARK: - Helper Methods
@@ -229,6 +229,12 @@ struct TopUpView: View {
         formatter.maximumFractionDigits = 2
         return formatter.string(from: NSNumber(value: balance)) ?? "0.00"
     }
+
+    private var shouldShowEscapeHint: Bool {
+        tutorialManager.isPetEscaped &&
+        tutorialManager.currentStep?.id == "petEscapeTopUpButton"
+    }
+
 }
 
 // MARK: - Amount Card

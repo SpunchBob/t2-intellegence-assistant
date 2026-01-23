@@ -14,54 +14,73 @@ struct TutorialConfig {
     let highlightColor: Color
     let cornerRadius: CGFloat
     let padding: CGFloat
-    
-    /// Пример туториала для магазина
-    static let shopTutorial = TutorialConfig(
+
+
+    /// Сценарий "Питомец убежал" через пополнение
+    static let petEscapeTutorial = TutorialConfig(
         steps: [
             TutorialStep(
-                id: "myPet",
-                title: "Мой Питомец",
-                description: "Здесь вы можете кастомизировать своего питомца Макса.",
-                targetViewId: "myPetCard",
+                id: "petEscapeDashboardTopUp",
+                title: "Питомец убежал!",
+                description: "Следы ведут к пополнению. Идём по маршруту.",
+                targetViewId: nil,
+                position: .bottom
+            ),
+            TutorialStep(
+                id: "petEscapeTopUpButton",
+                title: "Он близко",
+                description: "Похоже, он на экране оплаты. Идём дальше.",
+                targetViewId: nil,
+                position: .bottom
+            ),
+            TutorialStep(
+                id: "petEscapeFound",
+                title: "Нашёлся!",
+                description: "Спасибо, что нашёл меня! Давай покажу, что здесь есть.",
+                targetViewId: "petEscapeFoundBanner",
                 position: .bottom
             )
         ],
         overlayColor: Color.black.opacity(0.8),
-        highlightColor: Color.tele2Pink.opacity(0.3),
+        highlightColor: Color.tele2Pink.opacity(0.35),
         cornerRadius: 16,
         padding: 8
     )
-    
-    /// Пример туториала для главного экрана
-    static let mainTutorial = TutorialConfig(
+
+    /// Сценарий с рассказом о возможностях экрана оплаты
+    static let petFoundPaymentTutorial = TutorialConfig(
         steps: [
             TutorialStep(
-                id: "welcome",
-                title: "Привет!",
-                description: "Добро пожаловать в T2 Интеллектуальный помощник!fklasjdfklasdjklfadsjkfhasjdkfhajksldfhjalksfhjlkdsfhjlasdhfjksdhflkjashjkfsahdljfagshjlgfashjldfghsadjfklsadghjksdfhgk",
-                targetViewId: nil,
-                position: .center
-            )
-        ],
-        overlayColor: Color.black.opacity(0.8),
-        highlightColor: Color.tele2Pink.opacity(0.3),
-        cornerRadius: 16,
-        padding: 8
-    )
-    
-    /// Пример туториала для главного экрана
-    static let coins = TutorialConfig(
-        steps: [
+                id: "paymentIntro",
+                title: "Ура ты нашел меня!",
+                description: "Спасибо, что нашёл меня. Раз уж мы тут, давай покажу, что тут находится. \n\nЗдесь можешь ввести сумму на которую хочешь пополнить баланс",
+                targetViewId: "1",
+                position: .bottom
+            ),
             TutorialStep(
-                id: "1223",
-                title: "Привет!",
-                description: "Добро пожаловДобро пожаловать в T2 Интеллектуальный помощник!fklasjdfklasdjklfadsjkfhasjdkfhajksldfhjalksfhjlkdsfhjlasdhfjksdhflkjashjkfsahdljfagshjlgfashjldfghsadjfklsadghjksdfhgkДобро пожаловать в T2 Интеллектуальный помощник!fklasjdfklasdjklfadsjkfhasjdkfhajksldfhjalksfhjlkdsfhjlasdhfjksdhflkjashjkfsahdljfagshjlgfashjldfghsadjfklsadghjksdfhgkать в T2 Интеллектуальный помощник!",
+                id: "paymentMethods",
+                title: "Сколько спишется",
+                description: "Здесь отображается какая косиссия в процентах будет дополнительно снята в зависимости от выбранной типа оплаты",
+                targetViewId: "2",
+                position: .bottom
+            ),
+            TutorialStep(
+                id: "paymentPay",
+                title: "Итоговая стоимость",
+                description: "А тут отображается итоговая стоимость пополнения баланса",
+                targetViewId: "3",
+                position: .top
+            ),
+            TutorialStep(
+                id: "complete",
+                title: "Я домой",
+                description: "Вроде тут все!\nЯ убежал обратно домой!",
                 targetViewId: "123",
                 position: .center
             )
         ],
         overlayColor: Color.black.opacity(0.8),
-        highlightColor: Color.tele2Pink.opacity(0.3),
+        highlightColor: Color.tele2Pink.opacity(0.35),
         cornerRadius: 16,
         padding: 8
     )
