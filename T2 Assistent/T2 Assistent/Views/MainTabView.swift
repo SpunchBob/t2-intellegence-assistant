@@ -14,8 +14,22 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack {
-            // Таббар с тремя экранами
+            // Таббар с четырьмя экранами
             TabView {
+                NavigationStack {
+                    ZStack {
+                        Color.tele2Dark.ignoresSafeArea()
+                        DashboardView()
+                    }
+                    .onAppear {
+                        topBarManager.show()
+                    }
+                }
+                .tabItem {
+                    Label("Главная", systemImage: "house.fill")
+                }
+                .toolbarBackground(Color.tele2Dark, for: .tabBar)
+                
                 NavigationStack {
                     ZStack {
                         Color.tele2Dark.ignoresSafeArea()

@@ -39,7 +39,6 @@ struct CoinsView: View {
         .onAppear {
             viewModel.userState = userState
             startTimer()
-            TutorialManager.shared.startTutorial(.coins)
         }
         .alert("Награда", isPresented: $viewModel.showRewardAlert) {
             Button("OK", role: .cancel) { }
