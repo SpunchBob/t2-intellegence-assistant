@@ -23,13 +23,13 @@ struct ChatView: View {
                     .tint(.tele2Pink)
             } else {
                 VStack(spacing: 0) {
-                    // Заголовок
-                    headerSection
-                    
                     // Список сообщений
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(spacing: 16) {
+                                // Заголовок
+                                headerSection
+                                
                                 ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
                                     MessageBubble(
                                         message: message,
@@ -165,52 +165,59 @@ struct MessageBubble: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
+            // Левая сторона - для сообщений ассистента
             if !message.isUser {
-                // Иконка лисы для сообщений ассистента
                 Image(systemName: "face.smiling")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
                     .frame(width: 24, height: 24)
-            }
-            
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 8) {
-                // Текст сообщения
-                Text(message.content)
-                    .font(.system(size: 16))
-                    .foregroundColor(message.isUser ? .white : .white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        message.isUser 
-                            ? Color.tele2Pink 
-                            : (showShopButton ? Color.tele2Pink : Color.white.opacity(0.1))
-                    )
-                    .cornerRadius(16)
                 
-                // Кнопка "Перейти в магазин" для первого сообщения
-                if showShopButton && !message.isUser {
-                    Button(action: {
-                        // Переход в магазин
-                    }) {
-                        HStack {
-                            Text("Перейти в магазин")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                            
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal, 20)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(message.content)
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color.tele2Pink)
-                        .cornerRadius(12)
+                        .background(showShopButton ? Color.tele2Pink : Color.white.opacity(0.1))
+                        .cornerRadius(16)
+                    
+                    if showShopButton {
+                        Button(action: {
+                            // Переход в магазин
+                        }) {
+                            HStack {
+                                Text("Перейти в магазин")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color.tele2Pink)
+                            .cornerRadius(12)
+                        }
                     }
                 }
+                
+                Spacer(minLength: 0)
             }
             
+            // Правая сторона - для сообщений пользователя
             if message.isUser {
-                Spacer()
+                Spacer(minLength: 0)
+                
+                VStack(alignment: .trailing, spacing: 8) {
+                    Text(message.content)
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.tele2Pink)
+                        .cornerRadius(16)
+                }
             }
         }
     }
