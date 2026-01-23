@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;  // ← ключевой using для OpenApiInfo / OpenApiContact
 using t2Core;
+using t2Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Контроллеры
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -52,6 +54,13 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
         c.DocumentTitle = "T2 Intelligence Assistant - Swagger";
     });
+}
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DatabaseSeeder.SeedAsync(db);
 }
 
 app.UseHttpsRedirection();

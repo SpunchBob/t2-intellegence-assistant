@@ -13,7 +13,7 @@ namespace t2Core.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _bestCategotyURL = "https://external-service.example.com/api/products";
+        private readonly string _bestCategotyURL = "http://185.113.139.92:5000/docs";
 
         public ProductController(AppDbContext db, IHttpClientFactory httpClientFactory)
         {
