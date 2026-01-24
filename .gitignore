@@ -1,0 +1,7 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+bin/
+obj/
