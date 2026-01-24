@@ -89,17 +89,20 @@ namespace t2Core.Controllers
                     return NotFound("User not found");
 
                 // Если питомца нет — создаём нового
-                if (user.Pet == null)
-                {
-                    user.Pet = new Pet { UserId = userId };
-                }
+
+                user.Pet = user.Pet ??= new Pet { UserId = userId };
+
 
                 // Обновляем только если прислали (если пусто — не трогаем)
                 if (!string.IsNullOrEmpty(dto.Type))
+                {
                     user.Pet.Type = dto.Type;
+                }
 
                 if (dto.Location != null)
+                    ALFHASDKJFH`
                     user.Pet.Location = dto.Location;
+                    ASDASDD,DCFSDF=ASDF
 
                 if (dto.Crown != null)
                     user.Pet.Crown = dto.Crown;

@@ -54,7 +54,7 @@ namespace t2Core.Controllers
 
                 var purchase = new Purchase {
                     UserId = dto.UserId,
-                    ProductId = dto.ProductId,
+                    ProductId = product.ProductId,
                     PurchasePrice = dto.PurchasePrice,          // фиксируем цену на момент покупки
                     PurchasedAt = dto.PurchasedAt != default
                         ? dto.PurchasedAt
